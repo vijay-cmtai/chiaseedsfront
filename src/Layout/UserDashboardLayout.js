@@ -1,0 +1,181 @@
+// src/Layout/UserDashboardLayout.js (FINAL CORRECTED CODE)
+
+import React from "react";
+import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+  makeStyles,
+  CssBaseline,
+} from "@material-ui/core";
+import DashboardIcon from "@material-ui/icons/Dashboard";
+import ShoppingBasketIcon from "@material-ui/icons/ShoppingBasket";
+import AccountCircleIcon from "@material-ui/icons/AccountCircle";
+import LocationOnIcon from "@material-ui/icons/LocationOn";
+import FavoriteIcon from "@material-ui/icons/Favorite";
+import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import ShoppingCartIcon from "@material-ui/icons/ShoppingCart";
+import HomeIcon from "@material-ui/icons/Home";
+
+import { logout, reset } from "../features/auth/authSlice"; // Corrected Path
+
+// === PROFESSIONAL COLOR THEME ===
+const colors = {
+  primary: "#878fba", // Lavender for active links
+  primaryHover: "#6c749d", // Darker lavender for hover
+  sidebarBg: "#9788b9", // Dark purple for the sidebar
+  sidebarText: "rgba(255, 255, 255, 0.8)", // Light text
+  sidebarTextActive: "#ffffff", // Pure white for active text
+  sidebarHoverBg: "rgba(255, 255, 255, 0.08)", // Subtle hover
+  contentBg: "#fdfaf6", // Warm, off-white for the main area
+};
+
+const drawerWidth = 260;
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    display: "flex",
+    fontFamily: "'Poppins', sans-serif",
+  },
+  drawer: {
+    width: drawerWidth,
+    flexShrink: 0,
+  },
+  drawerPaper: {
+    width: drawerWidth,
+    backgroundColor: colors.sidebarBg,
+    borderRight: "none",
+  },
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing(4),
+    backgroundColor: colors.contentBg,
+    minHeight: "100vh",
+  },
+  sidebarHeader: {
+    padding: theme.spacing(3),
+    textAlign: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.15)",
+  },
+  sidebarHeaderText: {
+    fontSize: "22px",
+    fontWeight: "700",
+    color: colors.sidebarTextActive,
+    letterSpacing: "1.5px",
+    textTransform: "uppercase",
+  },
+  navList: {
+    padding: theme.spacing(1, 1),
+  },
+  listItem: {
+    margin: theme.spacing(0.5, 1),
+    padding: theme.spacing(1.2, 2),
+    borderRadius: "8px",
+    color: colors.sidebarText,
+    transition: "all 0.2s ease-in-out",
+    "& .MuiListItemIcon-root": {
+      color: "inherit",
+      minWidth: "45px",
+    },
+    "&:hover": {
+      backgroundColor: colors.sidebarHoverBg,
+      color: colors.sidebarTextActive,
+    },
+  },
+  activeLink: {
+    backgroundColor: colors.primary,
+    color: colors.sidebarTextActive,
+    boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+    "& .MuiListItemText-primary": {
+      fontWeight: 500,
+    },
+    "&:hover": {
+      backgroundColor: colors.primaryHover,
+    },
+  },
+  sidebarFooter: {
+    marginTop: "auto", // Push footer to the bottom
+    padding: theme.spacing(1, 0),
+    borderTop: `1px solid rgba(255, 255, 255, 0.1)`,
+  },
+}));
+
+const UserDashboardLayout = () => {
+  const classes = useStyles();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    dispatch(reset());
+    navigate("/login");
+  };
+
+  const userNavItems = [
+    { text: "Dashboard", to: "/user/dashboard", icon: <DashboardIcon /> },
+    { text: "My Orders", to: "/user/orders", icon: <ShoppingBasketIcon /> },
+    { text: "My Cart", to: "/user/cart", icon: <ShoppingCartIcon /> },
+    { text: "Wishlist", to: "/user/wishlist", icon: <FavoriteIcon /> },
+    { text: "Profile", to: "/user/profile", icon: <AccountCircleIcon /> },
+    { text: "Address", to: "/user/address", icon: <LocationOnIcon /> },
+  ];
+
+  return (
+    <div className={classes.root}>
+      <CssBaseline />
+      <Drawer
+        variant="permanent"
+        className={classes.drawer}
+        classes={{ paper: classes.drawerPaper }}
+      >
+        <div className={classes.sidebarHeader}>
+          <Typography variant="h5" className={classes.sidebarHeaderText}>
+            User Panel
+          </Typography>
+        </div>
+        <List className={classes.navList}>
+          {userNavItems.map((item) => (
+            <ListItem
+              button
+              component={NavLink}
+              to={item.to}
+              key={item.text}
+              className={({ isActive }) =>
+                isActive
+                  ? `${classes.listItem} ${classes.activeLink}`
+                  : classes.listItem
+              }
+            >
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItem>
+          ))}
+        </List>
+        <div className={classes.sidebarFooter}>
+          <ListItem button component={Link} to="/" className={classes.listItem}>
+            <ListItemIcon>
+              <HomeIcon />
+            </ListItemIcon>
+            <ListItemText primary="Back to Home" />
+          </ListItem>
+          <ListItem button onClick={handleLogout} className={classes.listItem}>
+            <ListItemIcon>
+              <ExitToAppIcon />
+            </ListItemIcon>
+            <ListItemText primary="Sign Out" />
+          </ListItem>
+        </div>
+      </Drawer>
+      <main className={classes.content}>
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
+export default UserDashboardLayout;
