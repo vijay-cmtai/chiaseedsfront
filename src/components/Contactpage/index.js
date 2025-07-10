@@ -1,5 +1,5 @@
 import React from "react";
-import ContactFrom from "../ContactFrom";
+import ContactFrom from "../../components/ContactFrom";
 
 // --- Color Palette (Matching your theme) ---
 const colors = {
