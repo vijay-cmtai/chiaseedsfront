@@ -2,8 +2,6 @@ import React, { Component } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-
-// --- Consistent Color Palette (Unchanged) ---
 const colors = {
   textDark: "#3d2b56",
   textMuted: "#5a506b",
@@ -11,8 +9,6 @@ const colors = {
   gradientStart: "#fde7c9",
   gradientEnd: "#e0c3fc",
 };
-
-// --- Style Objects (Unchanged) ---
 const styles = {
   section: {
     background: `linear-gradient(to right, ${colors.gradientStart} 0%, ${colors.gradientEnd} 100%)`,
@@ -57,8 +53,6 @@ const styles = {
     transition: "color 0.3s ease",
   },
 };
-
-// --- CSS for hover effect and importing Font Awesome ---
 const hoverStyles = `
     @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
 
@@ -72,8 +66,6 @@ const hoverStyles = `
         color: ${colors.textDark};
     }
 `;
-
-// ✅ NEW: Updated data array with your specific partner names and relevant icons
 const partnersData = [
   { icon: "fas fa-leaf", name: "Greenfarm's" },
   { icon: "fas fa-tractor", name: "Farmer Local Purshottam" },
@@ -85,21 +77,20 @@ const partnersData = [
 
 class Client extends Component {
   render() {
-    // ✅ NEW: Updated slider settings to best display 6 items
     const settings = {
       dots: false,
       arrows: false,
-      speed: 1500, // Smoother transition
-      slidesToShow: 6, // Show all 6 on large screens
+      speed: 1500, 
+      slidesToShow: 6, 
       slidesToScroll: 1,
       autoplay: true,
       autoplaySpeed: 3000,
       infinite: true,
       responsive: [
-        { breakpoint: 1400, settings: { slidesToShow: 5 } }, // Slightly smaller desktop
-        { breakpoint: 1200, settings: { slidesToShow: 4 } }, // Regular desktop
-        { breakpoint: 992, settings: { slidesToShow: 3 } }, // Tablet
-        { breakpoint: 768, settings: { slidesToShow: 2 } }, // Mobile
+        { breakpoint: 1400, settings: { slidesToShow: 5 } }, 
+        { breakpoint: 1200, settings: { slidesToShow: 4 } }, 
+        { breakpoint: 992, settings: { slidesToShow: 3 } }, 
+        { breakpoint: 768, settings: { slidesToShow: 2 } }, 
       ],
     };
 
