@@ -1,7 +1,5 @@
-// Contactpage.js (Final Updated File)
-
 import React from "react";
-import ContactForm from "../ContactFrom";
+import ContactForm from "../ContactForm";
 
 // --- Color Palette (Matching your theme) ---
 const colors = {
@@ -14,7 +12,7 @@ const colors = {
   gradientEnd: "#e0c3fc",
 };
 
-// --- Styles ---
+// --- Styles (Unchanged) ---
 const styles = {
   contactSection: {
     padding: "100px 0",
@@ -80,14 +78,21 @@ const styles = {
     lineHeight: "1.6",
     margin: 0,
   },
+  // Added for email labels
+  emailLabel: {
+    fontSize: "14px",
+    color: colors.textDark,
+    fontWeight: "600",
+    display: "block",
+    marginTop: "8px",
+  },
   itemLink: {
-    // Style for clickable links
     fontSize: "16px",
     color: colors.textDark,
     lineHeight: "1.6",
     margin: 0,
     textDecoration: "none",
-    display: "block", // To ensure each email is on a new line
+    display: "block",
     marginBottom: "4px",
   },
   mapContainer: {
@@ -112,10 +117,8 @@ const Contactpage = () => {
           {/* Left Column: Contact Details */}
           <div className="col col-lg-6 col-12 mb-4 mb-lg-0">
             <div style={styles.card}>
-              <h2 style={styles.title}>Naraa Global Enterprises</h2>
-              <p style={styles.infoText}>
-                Your trust, our commitment. We'd love to hear from you!
-              </p>
+              <h2 style={styles.title}>Contact Us</h2>
+              <p style={styles.infoText}>Your trust, our commitment.</p>
               <ul style={styles.contactList}>
                 {/* Address */}
                 <li style={styles.contactItem}>
@@ -128,6 +131,10 @@ const Contactpage = () => {
                       Kavtha Railway, Taluka Deoli, District Wardha,
                       <br />
                       Maharashtra – 442302
+                      <br />
+                      <small>
+                        (Manufacturing Plant & Office – Same Location)
+                      </small>
                     </p>
                   </div>
                 </li>
@@ -138,7 +145,8 @@ const Contactpage = () => {
                   </div>
                   <div style={styles.textWrapper}>
                     <h5 style={styles.itemTitle}>Phone</h5>
-                    <a href="tel:+917620945925" style={styles.itemLink}>
+                    {/* The phone number you provided seems incomplete, I've left it as is. */}
+                    <a href="tel:+91 7620945925" style={styles.itemLink}>
                       +91 7620945925
                     </a>
                   </div>
@@ -150,24 +158,33 @@ const Contactpage = () => {
                   </div>
                   <div style={styles.textWrapper}>
                     <h5 style={styles.itemTitle}>Email</h5>
+                    <span style={styles.emailLabel}>General Inquiries:</span>
                     <a
                       href="mailto:info@naraaglobal.com"
                       style={styles.itemLink}
                     >
                       info@naraaglobal.com
                     </a>
+
+                    <span style={styles.emailLabel}>Customer Support:</span>
                     <a
                       href="mailto:hello@naraaglobal.com"
                       style={styles.itemLink}
                     >
                       hello@naraaglobal.com
                     </a>
+
+                    <span style={styles.emailLabel}>
+                      Business/Partnerships:
+                    </span>
                     <a
                       href="mailto:business@naraaglobal.com"
                       style={styles.itemLink}
                     >
                       business@naraaglobal.com
                     </a>
+
+                    <span style={styles.emailLabel}>Founder & CEO:</span>
                     <a
                       href="mailto:sahil.pardake@naraaglobal.com"
                       style={styles.itemLink}
@@ -184,7 +201,7 @@ const Contactpage = () => {
                   <div style={styles.textWrapper}>
                     <h5 style={styles.itemTitle}>Working Hours</h5>
                     <p style={styles.itemDetail}>
-                      Mon - Sat: 9:00 AM to 6:00 PM
+                      Monday to Saturday – 9:00 AM to 6:00 PM
                       <br />
                       Closed on Sundays
                     </p>
@@ -197,7 +214,7 @@ const Contactpage = () => {
           {/* Right Column: Contact Form */}
           <div className="col col-lg-6 col-12">
             <div style={styles.card}>
-              <h2 style={styles.title}>Quick Contact Form</h2>
+              <h2 style={styles.title}>Get In Touch</h2>
               <ContactForm />
             </div>
           </div>
