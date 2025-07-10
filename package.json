@@ -41,7 +41,7 @@
   },
   "scripts": {
     "start": "DISABLE_ESLINT_PLUGIN=true react-scripts start",
-    "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build && mv build dist",
+    "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build && mv build build",
     "test": "DISABLE_ESLINT_PLUGIN=true react-scripts test",
     "eject": "react-scripts eject"
 
