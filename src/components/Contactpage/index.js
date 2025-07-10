@@ -1,5 +1,5 @@
 import React from "react";
-import ContactForm from "../ContactForm";
+import ContactFrom from "../../components/ContactFrom";
 
 // --- Color Palette (Matching your theme) ---
 const colors = {
@@ -215,7 +215,7 @@ const Contactpage = () => {
           <div className="col col-lg-6 col-12">
             <div style={styles.card}>
               <h2 style={styles.title}>Get In Touch</h2>
-              <ContactForm />
+              <ContactFrom />
             </div>
           </div>
         </div>

@@ -2,29 +2,18 @@ import React, { Component } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-
-// Client logo images
-import client1 from "../../images/client/img-1.png";
-import client2 from "../../images/client/img-2.png";
-import client3 from "../../images/client/img-3.png";
-import client4 from "../../images/client/img-4.png";
-import client5 from "../../images/client/img-5.png";
-
-// --- Consistent Color Palette ---
 const colors = {
   textDark: "#3d2b56",
+  textMuted: "#5a506b",
+  primary: "#878fba",
   gradientStart: "#fde7c9",
   gradientEnd: "#e0c3fc",
 };
-
-// --- Style Objects for the New Design ---
 const styles = {
-  // 1. Main section with gradient background
   section: {
     background: `linear-gradient(to right, ${colors.gradientStart} 0%, ${colors.gradientEnd} 100%)`,
     padding: "80px 0",
   },
-  // 2. Main container for the client logos (Frosted Glass Effect)
   clientWrapper: {
     background: "rgba(255, 255, 255, 0.5)",
     backdropFilter: "blur(10px)",
@@ -33,7 +22,6 @@ const styles = {
     boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
     border: "1px solid rgba(255, 255, 255, 0.2)",
   },
-  // 3. Section Title
   title: {
     textAlign: "center",
     color: colors.textDark,
@@ -41,49 +29,70 @@ const styles = {
     fontSize: "36px",
     marginBottom: "40px",
   },
-  // 4. Style for each slide item to center the logo
   slideItem: {
-    display: "flex !important", // Important to override slick styles
+    display: "flex !important",
+    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
+    textAlign: "center",
     outline: "none",
-  },
-  // 5. Style for each client logo
-  clientLogo: {
-    maxHeight: "60px", // Limits the height of logos
-    width: "auto",
-    maxWidth: "150px", // Prevents logos from being too wide
-    filter: "grayscale(100%) opacity(0.7)", // Default grayscale look
-    transition: "filter 0.3s ease",
+    padding: "20px 10px",
     cursor: "pointer",
+    transition: "transform 0.3s ease",
+  },
+  partnerIcon: {
+    fontSize: "48px",
+    color: colors.primary,
+    marginBottom: "15px",
+    transition: "color 0.3s ease",
+  },
+  partnerText: {
+    fontSize: "18px",
+    fontWeight: "600",
+    color: colors.textMuted,
+    transition: "color 0.3s ease",
   },
 };
-
-// CSS for hover effect, injected via a style tag
 const hoverStyles = `
-    .client-logo-item:hover img {
-        filter: grayscale(0%) opacity(1);
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+
+    .partner-item:hover {
+        transform: translateY(-5px);
+    }
+    .partner-item:hover .partner-icon {
+        color: ${colors.textDark};
+    }
+    .partner-item:hover .partner-text {
+        color: ${colors.textDark};
     }
 `;
+const partnersData = [
+  { icon: "fas fa-leaf", name: "Greenfarm's" },
+  { icon: "fas fa-tractor", name: "Farmer Local Purshottam" },
+  { icon: "fas fa-seedling", name: "Farmer Local Vilash" },
+  { icon: "fas fa-user-tie", name: "Farmer Local kishanrao" },
+  { icon: "fas fa-sun", name: "Farmer Local ravi kumar" },
+  { icon: "fas fa-hands-helping", name: "Farmer Local santosh" },
+];
 
 class Client extends Component {
   render() {
     const settings = {
       dots: false,
       arrows: false,
-      speed: 1000,
-      slidesToShow: 5,
+      speed: 1500, 
+      slidesToShow: 6, 
       slidesToScroll: 1,
       autoplay: true,
-      autoplaySpeed: 2000, // Slightly faster autoplay
+      autoplaySpeed: 3000,
+      infinite: true,
       responsive: [
-        { breakpoint: 1024, settings: { slidesToShow: 4 } },
-        { breakpoint: 768, settings: { slidesToShow: 3 } },
-        { breakpoint: 480, settings: { slidesToShow: 2 } },
+        { breakpoint: 1400, settings: { slidesToShow: 5 } }, 
+        { breakpoint: 1200, settings: { slidesToShow: 4 } }, 
+        { breakpoint: 992, settings: { slidesToShow: 3 } }, 
+        { breakpoint: 768, settings: { slidesToShow: 2 } }, 
       ],
     };
-
-    const clients = [client1, client2, client3, client4, client5];
 
     return (
       <>
@@ -94,24 +103,17 @@ class Client extends Component {
               <h2 style={styles.title}>Our Trusted Partners</h2>
               <div className="client-carousel">
                 <Slider {...settings}>
-                  {clients.concat(clients).map(
-                    (
-                      clientImg,
-                      index // Doubling the array for a seamless loop
-                    ) => (
-                      <div
-                        key={index}
-                        className="client-logo-item"
-                        style={styles.slideItem}
-                      >
-                        <img
-                          src={clientImg}
-                          alt={`Client ${index + 1}`}
-                          style={styles.clientLogo}
-                        />
+                  {partnersData.map((partner, index) => (
+                    <div key={index} className="partner-item">
+                      <div style={styles.slideItem}>
+                        <i
+                          className={partner.icon}
+                          style={styles.partnerIcon}
+                        ></i>
+                        <span style={styles.partnerText}>{partner.name}</span>
                       </div>
-                    )
-                  )}
+                    </div>
+                  ))}
                 </Slider>
               </div>
             </div>
