@@ -1,4 +1,4 @@
-// src/Layout/UserDashboardLayout.js (MOBILE RESPONSIVE CODE)
+// src/Layout/UserDashboardLayout.js (FINAL CORRECTED CODE)
 
 import React from "react";
 import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
@@ -26,11 +26,10 @@ import FavoriteIcon from "@material-ui/icons/Favorite";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import ShoppingCartIcon from "@material-ui/icons/ShoppingCart";
 import HomeIcon from "@material-ui/icons/Home";
-import MenuIcon from "@material-ui/icons/Menu"; // Menu Icon import kiya
+import MenuIcon from "@material-ui/icons/Menu";
 
 import { logout, reset } from "../features/auth/authSlice";
 
-// === PROFESSIONAL COLOR THEME ===
 const colors = {
   primary: "#878fba",
   primaryHover: "#6c749d",
@@ -45,23 +44,22 @@ const drawerWidth = 260;
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    display: "flex",
+    display: "flex", // YE AB SIDHAPTAUR PAR DRAWER AUR MAIN CONTENT PAR LAGU HOGA
     fontFamily: "'Poppins', sans-serif",
   },
-  // AppBar (Header) ke liye styles
   appBar: {
-    // Desktop par, AppBar ko Drawer ke side me rakha gaya hai
     [theme.breakpoints.up("md")]: {
       width: `calc(100% - ${drawerWidth}px)`,
       marginLeft: drawerWidth,
     },
-    backgroundColor: colors.sidebarBg, // AppBar ka color theme se match kiya
+    backgroundColor: colors.sidebarBg,
+    // AppBar ko flex container se bahar nikalne ke baad, usko drawer ke upar laane ke liye zIndex zaroori hai
+    zIndex: theme.zIndex.drawer + 1,
   },
-  // Menu icon jo sirf mobile par dikhega
   menuButton: {
     marginRight: theme.spacing(2),
     [theme.breakpoints.up("md")]: {
-      display: "none", // Desktop par hide kar diya
+      display: "none",
     },
   },
   drawer: {
@@ -75,14 +73,12 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: colors.sidebarBg,
     borderRight: "none",
   },
-  // Content area ke liye
   content: {
     flexGrow: 1,
     padding: theme.spacing(3),
     backgroundColor: colors.contentBg,
     minHeight: "100vh",
   },
-  // Toolbar ek spacer ka kaam karega taaki content AppBar ke neeche na chhipe
   toolbar: theme.mixins.toolbar,
   sidebarHeader: {
     padding: theme.spacing(3),
@@ -137,9 +133,7 @@ const UserDashboardLayout = (props) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
-  // Yeh hook check karega ki screen 'medium' (desktop) se choti hai ya nahi
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  // Mobile drawer ko open/close karne ke liye state
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
   const handleLogout = () => {
@@ -148,7 +142,6 @@ const UserDashboardLayout = (props) => {
     navigate("/login");
   };
 
-  // Drawer toggle function
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
@@ -162,7 +155,6 @@ const UserDashboardLayout = (props) => {
     { text: "Address", to: "/user/address", icon: <LocationOnIcon /> },
   ];
 
-  // Drawer ka content alag se bana liya taaki isko dono (mobile/desktop) Drawers me use kar sakein
   const drawerContent = (
     <div>
       <div className={classes.sidebarHeader}>
@@ -182,7 +174,7 @@ const UserDashboardLayout = (props) => {
                 ? `${classes.listItem} ${classes.activeLink}`
                 : classes.listItem
             }
-            onClick={isMobile ? handleDrawerToggle : null} // Mobile par link click karne par drawer band ho jayega
+            onClick={isMobile ? handleDrawerToggle : null}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
@@ -207,7 +199,8 @@ const UserDashboardLayout = (props) => {
   );
 
   return (
-    <div className={classes.root}>
+    // === YAHAN PAR MAIN CHANGE KIYA GAYA HAI ===
+    <div>
       <CssBaseline />
       <AppBar position="fixed" className={classes.appBar}>
         <Toolbar>
@@ -221,41 +214,39 @@ const UserDashboardLayout = (props) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap>
-             My Account
+            My Account
           </Typography>
         </Toolbar>
       </AppBar>
-      <nav className={classes.drawer} aria-label="mailbox folders">
-        {/* Yeh Drawer sirf Mobile par dikhega */}
-        {isMobile && (
-          <Drawer
-            variant="temporary"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            classes={{ paper: classes.drawerPaper }}
-            ModalProps={{
-              keepMounted: true, // Better open performance on mobile.
-            }}
-          >
-            {drawerContent}
-          </Drawer>
-        )}
-        {/* Yeh Drawer sirf Desktop par dikhega */}
-        {!isMobile && (
-          <Drawer
-            classes={{ paper: classes.drawerPaper }}
-            variant="permanent"
-            open
-          >
-            {drawerContent}
-          </Drawer>
-        )}
-      </nav>
-      <main className={classes.content}>
-        {/* Yeh div content ko AppBar ke neeche push karega */}
-        <div className={classes.toolbar} />
-        <Outlet />
-      </main>
+      
+      {/* Ab root class (display: flex) yahan laga hai */}
+      <div className={classes.root}>
+        <nav className={classes.drawer} aria-label="mailbox folders">
+          {isMobile ? (
+            <Drawer
+              variant="temporary"
+              open={mobileOpen}
+              onClose={handleDrawerToggle}
+              classes={{ paper: classes.drawerPaper }}
+              ModalProps={{ keepMounted: true }}
+            >
+              {drawerContent}
+            </Drawer>
+          ) : (
+            <Drawer
+              classes={{ paper: classes.drawerPaper }}
+              variant="permanent"
+              open
+            >
+              {drawerContent}
+            </Drawer>
+          )}
+        </nav>
+        <main className={classes.content}>
+          <div className={classes.toolbar} />
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };
