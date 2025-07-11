@@ -240,7 +240,10 @@ class Header extends Component {
                         </Link>
                       </div>
                     )}
-                    <MobileMenu />
+                    <MobileMenu
+                      isAuthenticated={isAuthenticated}
+                      onLogout={this.handleLogout} // Logout function ko prop ke roop me bhejein
+                    />
                   </div>
                 </div>
               </div>
