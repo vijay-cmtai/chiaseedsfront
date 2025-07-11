@@ -43,18 +43,20 @@ const colors = {
 const drawerWidth = 260;
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    display: "flex", // YE AB SIDHAPTAUR PAR DRAWER AUR MAIN CONTENT PAR LAGU HOGA
-    fontFamily: "'Poppins', sans-serif",
+  // Is root div me ab sirf ek hi element hai - flex container
+  wrapper: {
+    display: "flex",
   },
+  // AppBar (Header) ke liye styles
   appBar: {
+    backgroundColor: colors.sidebarBg,
+    // Desktop par, AppBar ko Drawer ke upar lane ke liye zIndex zaroori hai
+    zIndex: theme.zIndex.drawer + 1,
+    // Desktop par AppBar ki position aur width set karna
     [theme.breakpoints.up("md")]: {
       width: `calc(100% - ${drawerWidth}px)`,
-      marginLeft: drawerWidth,
+      marginLeft: `${drawerWidth}px`,
     },
-    backgroundColor: colors.sidebarBg,
-    // AppBar ko flex container se bahar nikalne ke baad, usko drawer ke upar laane ke liye zIndex zaroori hai
-    zIndex: theme.zIndex.drawer + 1,
   },
   menuButton: {
     marginRight: theme.spacing(2),
@@ -81,8 +83,12 @@ const useStyles = makeStyles((theme) => ({
   },
   toolbar: theme.mixins.toolbar,
   sidebarHeader: {
-    padding: theme.spacing(3),
-    textAlign: "center",
+    // Toolbar ke barabar height de rahe hain taaki "USER PANEL" header ke neeche na chhipe
+    ...theme.mixins.toolbar, 
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: theme.spacing(0, 1),
     backgroundColor: "rgba(0, 0, 0, 0.15)",
   },
   sidebarHeaderText: {
@@ -157,6 +163,8 @@ const UserDashboardLayout = (props) => {
 
   const drawerContent = (
     <div>
+       {/* Desktop par, sidebar header ko Appbar se align karne ke liye space chahiye */}
+      {!isMobile && <div className={classes.toolbar} />}
       <div className={classes.sidebarHeader}>
         <Typography variant="h5" className={classes.sidebarHeaderText}>
           User Panel
@@ -183,15 +191,11 @@ const UserDashboardLayout = (props) => {
       </List>
       <div className={classes.sidebarFooter}>
         <ListItem button component={Link} to="/" className={classes.listItem}>
-          <ListItemIcon>
-            <HomeIcon />
-          </ListItemIcon>
+          <ListItemIcon> <HomeIcon /> </ListItemIcon>
           <ListItemText primary="Back to Home" />
         </ListItem>
         <ListItem button onClick={handleLogout} className={classes.listItem}>
-          <ListItemIcon>
-            <ExitToAppIcon />
-          </ListItemIcon>
+          <ListItemIcon> <ExitToAppIcon /> </ListItemIcon>
           <ListItemText primary="Sign Out" />
         </ListItem>
       </div>
@@ -199,8 +203,8 @@ const UserDashboardLayout = (props) => {
   );
 
   return (
-    // === YAHAN PAR MAIN CHANGE KIYA GAYA HAI ===
-    <div>
+    // YEH FINAL STRUCTURE HAI
+    <div className={classes.wrapper}>
       <CssBaseline />
       <AppBar position="fixed" className={classes.appBar}>
         <Toolbar>
@@ -218,35 +222,33 @@ const UserDashboardLayout = (props) => {
           </Typography>
         </Toolbar>
       </AppBar>
-      
-      {/* Ab root class (display: flex) yahan laga hai */}
-      <div className={classes.root}>
-        <nav className={classes.drawer} aria-label="mailbox folders">
-          {isMobile ? (
-            <Drawer
-              variant="temporary"
-              open={mobileOpen}
-              onClose={handleDrawerToggle}
-              classes={{ paper: classes.drawerPaper }}
-              ModalProps={{ keepMounted: true }}
-            >
-              {drawerContent}
-            </Drawer>
-          ) : (
-            <Drawer
-              classes={{ paper: classes.drawerPaper }}
-              variant="permanent"
-              open
-            >
-              {drawerContent}
-            </Drawer>
-          )}
-        </nav>
-        <main className={classes.content}>
-          <div className={classes.toolbar} />
-          <Outlet />
-        </main>
-      </div>
+
+      <nav className={classes.drawer} aria-label="mailbox folders">
+        {isMobile ? (
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            classes={{ paper: classes.drawerPaper }}
+            ModalProps={{ keepMounted: true }}
+          >
+            {drawerContent}
+          </Drawer>
+        ) : (
+          <Drawer
+            classes={{ paper: classes.drawerPaper }}
+            variant="permanent"
+            open
+          >
+            {drawerContent}
+          </Drawer>
+        )}
+      </nav>
+      <main className={classes.content}>
+        {/* Yeh toolbar content ko AppBar ke neeche rakhega */}
+        <div className={classes.toolbar} />
+        <Outlet />
+      </main>
     </div>
   );
 };
