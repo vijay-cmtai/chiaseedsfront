@@ -12,11 +12,6 @@ import {
   Typography,
   makeStyles,
   CssBaseline,
-  AppBar,
-  Toolbar,
-  IconButton,
-  useTheme,
-  useMediaQuery,
 } from "@material-ui/core";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import ShoppingBasketIcon from "@material-ui/icons/ShoppingBasket";
@@ -26,49 +21,30 @@ import FavoriteIcon from "@material-ui/icons/Favorite";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import ShoppingCartIcon from "@material-ui/icons/ShoppingCart";
 import HomeIcon from "@material-ui/icons/Home";
-import MenuIcon from "@material-ui/icons/Menu";
 
-import { logout, reset } from "../features/auth/authSlice";
+import { logout, reset } from "../features/auth/authSlice"; // Corrected Path
 
+// === PROFESSIONAL COLOR THEME ===
 const colors = {
-  primary: "#878fba",
-  primaryHover: "#6c749d",
-  sidebarBg: "#9788b9",
-  sidebarText: "rgba(255, 255, 255, 0.8)",
-  sidebarTextActive: "#ffffff",
-  sidebarHoverBg: "rgba(255, 255, 255, 0.08)",
-  contentBg: "#fdfaf6",
+  primary: "#878fba", // Lavender for active links
+  primaryHover: "#6c749d", // Darker lavender for hover
+  sidebarBg: "#9788b9", // Dark purple for the sidebar
+  sidebarText: "rgba(255, 255, 255, 0.8)", // Light text
+  sidebarTextActive: "#ffffff", // Pure white for active text
+  sidebarHoverBg: "rgba(255, 255, 255, 0.08)", // Subtle hover
+  contentBg: "#fdfaf6", // Warm, off-white for the main area
 };
 
 const drawerWidth = 260;
 
 const useStyles = makeStyles((theme) => ({
-  // Is root div me ab sirf ek hi element hai - flex container
-  wrapper: {
+  root: {
     display: "flex",
-  },
-  // AppBar (Header) ke liye styles
-  appBar: {
-    backgroundColor: colors.sidebarBg,
-    // Desktop par, AppBar ko Drawer ke upar lane ke liye zIndex zaroori hai
-    zIndex: theme.zIndex.drawer + 1,
-    // Desktop par AppBar ki position aur width set karna
-    [theme.breakpoints.up("md")]: {
-      width: `calc(100% - ${drawerWidth}px)`,
-      marginLeft: `${drawerWidth}px`,
-    },
-  },
-  menuButton: {
-    marginRight: theme.spacing(2),
-    [theme.breakpoints.up("md")]: {
-      display: "none",
-    },
+    fontFamily: "'Poppins', sans-serif",
   },
   drawer: {
-    [theme.breakpoints.up("md")]: {
-      width: drawerWidth,
-      flexShrink: 0,
-    },
+    width: drawerWidth,
+    flexShrink: 0,
   },
   drawerPaper: {
     width: drawerWidth,
@@ -77,18 +53,13 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
     flexGrow: 1,
-    padding: theme.spacing(3),
+    padding: theme.spacing(4),
     backgroundColor: colors.contentBg,
     minHeight: "100vh",
   },
-  toolbar: theme.mixins.toolbar,
   sidebarHeader: {
-    // Toolbar ke barabar height de rahe hain taaki "USER PANEL" header ke neeche na chhipe
-    ...theme.mixins.toolbar, 
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: theme.spacing(0, 1),
+    padding: theme.spacing(3),
+    textAlign: "center",
     backgroundColor: "rgba(0, 0, 0, 0.15)",
   },
   sidebarHeaderText: {
@@ -128,28 +99,21 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   sidebarFooter: {
-    marginTop: "auto",
+    marginTop: "auto", // Push footer to the bottom
     padding: theme.spacing(1, 0),
     borderTop: `1px solid rgba(255, 255, 255, 0.1)`,
   },
 }));
 
-const UserDashboardLayout = (props) => {
+const UserDashboardLayout = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [mobileOpen, setMobileOpen] = React.useState(false);
 
   const handleLogout = () => {
     dispatch(logout());
     dispatch(reset());
     navigate("/login");
-  };
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
   };
 
   const userNavItems = [
@@ -161,92 +125,53 @@ const UserDashboardLayout = (props) => {
     { text: "Address", to: "/user/address", icon: <LocationOnIcon /> },
   ];
 
-  const drawerContent = (
-    <div>
-       {/* Desktop par, sidebar header ko Appbar se align karne ke liye space chahiye */}
-      {!isMobile && <div className={classes.toolbar} />}
-      <div className={classes.sidebarHeader}>
-        <Typography variant="h5" className={classes.sidebarHeaderText}>
-          User Panel
-        </Typography>
-      </div>
-      <List className={classes.navList}>
-        {userNavItems.map((item) => (
-          <ListItem
-            button
-            component={NavLink}
-            to={item.to}
-            key={item.text}
-            className={({ isActive }) =>
-              isActive
-                ? `${classes.listItem} ${classes.activeLink}`
-                : classes.listItem
-            }
-            onClick={isMobile ? handleDrawerToggle : null}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
-          </ListItem>
-        ))}
-      </List>
-      <div className={classes.sidebarFooter}>
-        <ListItem button component={Link} to="/" className={classes.listItem}>
-          <ListItemIcon> <HomeIcon /> </ListItemIcon>
-          <ListItemText primary="Back to Home" />
-        </ListItem>
-        <ListItem button onClick={handleLogout} className={classes.listItem}>
-          <ListItemIcon> <ExitToAppIcon /> </ListItemIcon>
-          <ListItemText primary="Sign Out" />
-        </ListItem>
-      </div>
-    </div>
-  );
-
   return (
-    // YEH FINAL STRUCTURE HAI
-    <div className={classes.wrapper}>
+    <div className={classes.root}>
       <CssBaseline />
-      <AppBar position="fixed" className={classes.appBar}>
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            className={classes.menuButton}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap>
-            My Account
+      <Drawer
+        variant="permanent"
+        className={classes.drawer}
+        classes={{ paper: classes.drawerPaper }}
+      >
+        <div className={classes.sidebarHeader}>
+          <Typography variant="h5" className={classes.sidebarHeaderText}>
+            User Panel
           </Typography>
-        </Toolbar>
-      </AppBar>
-
-      <nav className={classes.drawer} aria-label="mailbox folders">
-        {isMobile ? (
-          <Drawer
-            variant="temporary"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            classes={{ paper: classes.drawerPaper }}
-            ModalProps={{ keepMounted: true }}
-          >
-            {drawerContent}
-          </Drawer>
-        ) : (
-          <Drawer
-            classes={{ paper: classes.drawerPaper }}
-            variant="permanent"
-            open
-          >
-            {drawerContent}
-          </Drawer>
-        )}
-      </nav>
+        </div>
+        <List className={classes.navList}>
+          {userNavItems.map((item) => (
+            <ListItem
+              button
+              component={NavLink}
+              to={item.to}
+              key={item.text}
+              className={({ isActive }) =>
+                isActive
+                  ? `${classes.listItem} ${classes.activeLink}`
+                  : classes.listItem
+              }
+            >
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItem>
+          ))}
+        </List>
+        <div className={classes.sidebarFooter}>
+          <ListItem button component={Link} to="/" className={classes.listItem}>
+            <ListItemIcon>
+              <HomeIcon />
+            </ListItemIcon>
+            <ListItemText primary="Back to Home" />
+          </ListItem>
+          <ListItem button onClick={handleLogout} className={classes.listItem}>
+            <ListItemIcon>
+              <ExitToAppIcon />
+            </ListItemIcon>
+            <ListItemText primary="Sign Out" />
+          </ListItem>
+        </div>
+      </Drawer>
       <main className={classes.content}>
-        {/* Yeh toolbar content ko AppBar ke neeche rakhega */}
-        <div className={classes.toolbar} />
         <Outlet />
       </main>
     </div>
