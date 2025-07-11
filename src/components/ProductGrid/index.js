@@ -40,7 +40,7 @@ const ProductGrid = ({ products, addToCartProduct, addToWishListProduct }) => {
               <div className="product-item">
                 <div className="product-img">
                   {/* FIX 1: Using correct image source from backend */}
-                  <img src={getProductImage(product)} alt={product.name} />
+                  <img src={getProductImage(product)} alt={product.name}  loading="lazy"/>
                   <ul>
                     <li>
                       <button
