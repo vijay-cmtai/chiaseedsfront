@@ -36,7 +36,6 @@ import AddEditProductPage from "../../pages/admin/AddEditProductPage";
 import OtpVerificationPage from "../OtpVerificationPage";
 import Privacypolicy from "../PrivacyPolicy";
 import TermsAndConditions from "../TermsAndCondition";
-import PaymentPage from "../../pages/paymentpage";
 import OrderConfirmationPage from "../../pages/OrderConfirmationPage";
 
 const AllRoute = () => {
@@ -58,7 +57,6 @@ const AllRoute = () => {
       <Route path="/blog" element={<Blog />} />
       <Route path="/termandcond" element={<TermsAndConditions />} />
       <Route path="privacypolicy" element={<Privacypolicy />} />
-      <Route path="/payment" element={<PaymentPage />} />
       <Route
         path="/order-confirmation/:orderId"
         element={<OrderConfirmationPage />}
