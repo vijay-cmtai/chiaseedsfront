@@ -19,50 +19,43 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// --- Profile & Dashboard ---
 const getMyProfile = async () => {
   const response = await api.get("/profile");
   return response.data.data;
 };
 
-const updateMyProfile = async (profileData) => {
-  const response = await api.put("/profile", profileData);
+const updateMyProfile = async (userData) => {
+  const response = await api.patch("/profile", userData);
   return response.data.data;
 };
 
 const updateUserAvatar = async (avatarFormData) => {
-  const response = await api.patch("/avatar", avatarFormData);
+  const response = await api.patch("/profile/avatar", avatarFormData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return response.data.data;
 };
 
-const getDashboardStats = async () => {
-  const response = await api.get("/dashboard");
-  return response.data.data;
-};
-
-// --- Address Management ---
 const getAddresses = async () => {
-  const response = await api.get("/addresses");
+  const response = await api.get("/address");
   return response.data.data;
 };
 
 const addAddress = async (addressData) => {
-  const response = await api.post("/addresses", addressData);
+  const response = await api.post("/address", addressData);
   return response.data.data;
 };
 
-const updateAddress = async (addressData) => {
-  const { _id, ...updatePayload } = addressData;
-  const response = await api.put(`/addresses/${_id}`, updatePayload);
+const updateAddress = async ({ addressId, addressData }) => {
+  const response = await api.patch(`/address/${addressId}`, addressData);
   return response.data.data;
 };
 
 const deleteAddress = async (addressId) => {
-  const response = await api.delete(`/addresses/${addressId}`);
+  const response = await api.delete(`/address/${addressId}`);
   return response.data.data;
 };
 
-// --- Wishlist Management ---
 const getWishlist = async () => {
   const response = await api.get("/wishlist");
   return response.data.data;
@@ -78,28 +71,26 @@ const removeFromWishlist = async (productId) => {
   return response.data.data;
 };
 
-// === Cart Management ===
 const getCart = async () => {
   const response = await api.get("/cart");
   return response.data.data;
 };
 
-const addToCart = async ({ productId, quantity }) => {
-  const response = await api.post("/cart", { productId, quantity });
+const addToCart = async (cartData) => {
+  const response = await api.post("/cart", cartData);
   return response.data.data;
 };
 
-const removeFromCart = async (productId) => {
-  const response = await api.delete(`/cart/${productId}`);
+const removeFromCart = async (cartItemId) => {
+  const response = await api.delete(`/cart/${cartItemId}`);
   return response.data.data;
 };
 
 const updateCartQuantity = async ({ productId, quantity }) => {
-  const response = await api.patch(`/cart/${productId}`, { quantity });
+  const response = await api.patch(`/cart/quantity/${productId}`, { quantity });
   return response.data.data;
 };
 
-// --- Order Management ---
 const createOrder = async (orderData) => {
   const response = await api.post("/orders", orderData);
   return response.data.data;
@@ -110,8 +101,12 @@ const getMyOrders = async () => {
   return response.data.data;
 };
 
-const getOrderDetail = async (orderId) => {
+const getSingleOrder = async (orderId) => {
   const response = await api.get(`/orders/${orderId}`);
+  return response.data.data;
+};
+const getDashboardStats = async () => {
+  const response = await api.get("/dashboard/stats");
   return response.data.data;
 };
 
@@ -120,12 +115,10 @@ const getRecentUserOrders = async () => {
   return response.data.data;
 };
 
-// Export all functions as a single service object for clean importing
 const userService = {
   getMyProfile,
   updateMyProfile,
   updateUserAvatar,
-  getDashboardStats,
   getAddresses,
   addAddress,
   updateAddress,
@@ -139,8 +132,8 @@ const userService = {
   updateCartQuantity,
   createOrder,
   getMyOrders,
-  getOrderDetail,
+  getSingleOrder,
+  getDashboardStats,
   getRecentUserOrders,
 };
-
 export default userService;
