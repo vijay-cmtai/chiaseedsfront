@@ -1,8 +1,10 @@
-// src/Layout/UserDashboardLayout.js (FINAL CORRECTED CODE)
+// src/Layout/UserDashboardLayout.js (ALL ERRORS FIXED)
 
 import React from "react";
+// FIX 1: Imports ko sahi library se alag-alag kiya gaya
 import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+
 import {
   Drawer,
   List,
@@ -12,6 +14,11 @@ import {
   Typography,
   makeStyles,
   CssBaseline,
+  AppBar,
+  Toolbar,
+  IconButton,
+  useTheme,
+  useMediaQuery,
 } from "@material-ui/core";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import ShoppingBasketIcon from "@material-ui/icons/ShoppingBasket";
@@ -21,18 +28,18 @@ import FavoriteIcon from "@material-ui/icons/Favorite";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import ShoppingCartIcon from "@material-ui/icons/ShoppingCart";
 import HomeIcon from "@material-ui/icons/Home";
+import MenuIcon from "@material-ui/icons/Menu";
 
-import { logout, reset } from "../features/auth/authSlice"; // Corrected Path
+import { logout, reset } from "../features/auth/authSlice";
 
-// === PROFESSIONAL COLOR THEME ===
 const colors = {
-  primary: "#878fba", // Lavender for active links
-  primaryHover: "#6c749d", // Darker lavender for hover
-  sidebarBg: "#9788b9", // Dark purple for the sidebar
-  sidebarText: "rgba(255, 255, 255, 0.8)", // Light text
-  sidebarTextActive: "#ffffff", // Pure white for active text
-  sidebarHoverBg: "rgba(255, 255, 255, 0.08)", // Subtle hover
-  contentBg: "#fdfaf6", // Warm, off-white for the main area
+  primary: "#878fba",
+  primaryHover: "#6c749d",
+  sidebarBg: "#9788b9",
+  sidebarText: "rgba(255, 255, 255, 0.8)",
+  sidebarTextActive: "#ffffff",
+  sidebarHoverBg: "rgba(255, 255, 255, 0.08)",
+  contentBg: "#fdfaf6",
 };
 
 const drawerWidth = 260;
@@ -42,9 +49,17 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     fontFamily: "'Poppins', sans-serif",
   },
+  appBarMobile: {
+    [theme.breakpoints.up("md")]: {
+      display: "none",
+    },
+    backgroundColor: colors.sidebarBg,
+  },
   drawer: {
-    width: drawerWidth,
-    flexShrink: 0,
+    [theme.breakpoints.up("md")]: {
+      width: drawerWidth,
+      flexShrink: 0,
+    },
   },
   drawerPaper: {
     width: drawerWidth,
@@ -53,9 +68,12 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
     flexGrow: 1,
-    padding: theme.spacing(4),
+    padding: theme.spacing(3),
     backgroundColor: colors.contentBg,
     minHeight: "100vh",
+  },
+  toolbarDense: {
+    minHeight: 48,
   },
   sidebarHeader: {
     padding: theme.spacing(3),
@@ -77,11 +95,7 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(1.2, 2),
     borderRadius: "8px",
     color: colors.sidebarText,
-    transition: "all 0.2s ease-in-out",
-    "& .MuiListItemIcon-root": {
-      color: "inherit",
-      minWidth: "45px",
-    },
+    "& .MuiListItemIcon-root": { minWidth: "45px" },
     "&:hover": {
       backgroundColor: colors.sidebarHoverBg,
       color: colors.sidebarTextActive,
@@ -91,15 +105,11 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: colors.primary,
     color: colors.sidebarTextActive,
     boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-    "& .MuiListItemText-primary": {
-      fontWeight: 500,
-    },
-    "&:hover": {
-      backgroundColor: colors.primaryHover,
-    },
+    "& .MuiListItemText-primary": { fontWeight: 500 },
+    "&:hover": { backgroundColor: colors.primaryHover },
   },
   sidebarFooter: {
-    marginTop: "auto", // Push footer to the bottom
+    marginTop: "auto",
     padding: theme.spacing(1, 0),
     borderTop: `1px solid rgba(255, 255, 255, 0.1)`,
   },
@@ -109,11 +119,21 @@ const UserDashboardLayout = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const theme = useTheme();
+  // Hum abhi naam nahi dikha rahe, isliye useSelector ko comment kar sakte hain ya rakhe rehne de
+  // const { user } = useSelector((state) => state.auth);
+
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [mobileOpen, setMobileOpen] = React.useState(false);
 
   const handleLogout = () => {
     dispatch(logout());
     dispatch(reset());
     navigate("/login");
+  };
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
   };
 
   const userNavItems = [
@@ -125,53 +145,93 @@ const UserDashboardLayout = () => {
     { text: "Address", to: "/user/address", icon: <LocationOnIcon /> },
   ];
 
+  const drawerContent = (
+    <div>
+      <div className={classes.sidebarHeader}>
+        <Typography variant="h5" className={classes.sidebarHeaderText}>
+          User Panel
+        </Typography>
+      </div>
+      <List className={classes.navList}>
+        {userNavItems.map((item) => (
+          <ListItem
+            button
+            component={NavLink}
+            to={item.to}
+            key={item.text}
+            className={({ isActive }) =>
+              isActive
+                ? `${classes.listItem} ${classes.activeLink}`
+                : classes.listItem
+            }
+            onClick={isMobile ? handleDrawerToggle : null}
+          >
+            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.text} />
+          </ListItem>
+        ))}
+      </List>
+      <div className={classes.sidebarFooter}>
+        <ListItem button component={Link} to="/" className={classes.listItem}>
+          <ListItemIcon>
+            {" "}
+            <HomeIcon />{" "}
+          </ListItemIcon>
+          <ListItemText primary="Back to Home" />
+        </ListItem>
+        <ListItem button onClick={handleLogout} className={classes.listItem}>
+          <ListItemIcon>
+            {" "}
+            <ExitToAppIcon />{" "}
+          </ListItemIcon>
+          <ListItemText primary="Sign Out" />
+        </ListItem>
+      </div>
+    </div>
+  );
+
   return (
     <div className={classes.root}>
       <CssBaseline />
-      <Drawer
-        variant="permanent"
-        className={classes.drawer}
-        classes={{ paper: classes.drawerPaper }}
-      >
-        <div className={classes.sidebarHeader}>
-          <Typography variant="h5" className={classes.sidebarHeaderText}>
-            User Panel
-          </Typography>
-        </div>
-        <List className={classes.navList}>
-          {userNavItems.map((item) => (
-            <ListItem
-              button
-              component={NavLink}
-              to={item.to}
-              key={item.text}
-              className={({ isActive }) =>
-                isActive
-                  ? `${classes.listItem} ${classes.activeLink}`
-                  : classes.listItem
-              }
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItem>
-          ))}
-        </List>
-        <div className={classes.sidebarFooter}>
-          <ListItem button component={Link} to="/" className={classes.listItem}>
-            <ListItemIcon>
-              <HomeIcon />
-            </ListItemIcon>
-            <ListItemText primary="Back to Home" />
-          </ListItem>
-          <ListItem button onClick={handleLogout} className={classes.listItem}>
-            <ListItemIcon>
-              <ExitToAppIcon />
-            </ListItemIcon>
-            <ListItemText primary="Sign Out" />
-          </ListItem>
-        </div>
-      </Drawer>
+
+      <AppBar position="fixed" className={classes.appBarMobile}>
+        <Toolbar variant="dense">
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+          >
+            <MenuIcon />
+          </IconButton>
+        </Toolbar>
+      </AppBar>
+
+      <nav className={classes.drawer} aria-label="user navigation">
+        {isMobile ? (
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            classes={{ paper: classes.drawerPaper }}
+            ModalProps={{ keepMounted: true }}
+          >
+            {drawerContent}
+          </Drawer>
+        ) : (
+          <Drawer
+            // FIX 2: 'a' ki jagah 'classes' kiya gaya
+            classes={{ paper: classes.drawerPaper }}
+            variant="permanent"
+            open
+          >
+            {drawerContent}
+          </Drawer>
+        )}
+      </nav>
+
       <main className={classes.content}>
+        {isMobile && <div className={classes.toolbarDense} />}
         <Outlet />
       </main>
     </div>

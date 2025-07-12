@@ -1,3 +1,5 @@
+// src/pages/CartPage.js (FULLY CORRECTED AND SAFE CODE)
+
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -12,11 +14,9 @@ import {
   Divider,
   Paper,
   Modal,
-  Snackbar, // Snackbar rahega
+  Snackbar,
   makeStyles,
 } from "@material-ui/core";
-// --- REMOVED: MuiAlert import hata diya gaya hai ---
-// import MuiAlert from '@material-ui/lab/Alert';
 import { Link, useNavigate } from "react-router-dom";
 import DeleteIcon from "@material-ui/icons/Delete";
 import AddIcon from "@material-ui/icons/Add";
@@ -32,8 +32,6 @@ import {
   resetUserStatus,
 } from "../../features/user/userSlice";
 
-// --- REMOVED: Alert helper function hata diya gaya hai ---
-
 const useStyles = makeStyles((theme) => ({
   pageContainer: {
     padding: theme.spacing(4),
@@ -44,6 +42,7 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     alignItems: "center",
     padding: theme.spacing(2, 0),
+    flexWrap: "wrap", // For better mobile view
   },
   itemImage: {
     width: 100,
@@ -91,11 +90,11 @@ const useStyles = makeStyles((theme) => ({
     borderWidth: "2px",
     backgroundColor: "#f0f2ff",
   },
-  // --- ADDED: Notification ke liye style ---
   notification: {
     padding: theme.spacing(1.5, 3),
     color: "white",
     borderRadius: theme.shape.borderRadius,
+    fontWeight: 500,
   },
 }));
 
@@ -105,7 +104,7 @@ const CartPage = () => {
   const navigate = useNavigate();
 
   const { cart, addresses, status, message } = useSelector(
-    (state) => state.user
+    (state) => state.user || {} // Add fallback for initial state
   );
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
@@ -127,7 +126,7 @@ const CartPage = () => {
     if (addresses && addresses.length > 0) {
       const defaultAddress = addresses.find((addr) => addr.isDefault);
       setSelectedAddressId(
-        defaultAddress ? defaultAddress._id : addresses[0]._id
+        defaultAddress ? defaultAddress._id : addresses[0]?._id
       );
     }
   }, [addresses]);
@@ -153,9 +152,9 @@ const CartPage = () => {
         createOrder({ addressId: selectedAddressId })
       );
       const newOrder = unwrapResult(resultAction);
-
       navigate(`/order-success/${newOrder._id}`);
     } catch (err) {
+      // Error is already handled by the slice, just log for debugging
       console.error("Failed to place order:", err);
     }
   };
@@ -170,22 +169,34 @@ const CartPage = () => {
     setSelectedAddressId(addressId);
     setIsAddressModalOpen(false);
   };
+
   const handleRemoveFromCart = (productId) =>
     dispatch(removeFromCart(productId));
+
   const handleQuantityChange = (productId, newQuantity) => {
-    if (newQuantity > 0)
+    if (newQuantity > 0) {
       dispatch(updateCartQuantity({ productId, quantity: newQuantity }));
+    }
   };
 
-  const subtotal = (cart || []).reduce(
-    (acc, item) => acc + item.product.price * item.quantity,
-    0
-  );
+  // --- FIX 1: Safe subtotal calculation ---
+  const subtotal = (cart || []).reduce((acc, item) => {
+    // Check if item and item.product both exist before calculating price
+    if (item && item.product) {
+      return acc + item.product.price * item.quantity;
+    }
+    // If product is null, just return the accumulator
+    return acc;
+  }, 0);
+
   const selectedAddress = addresses?.find(
     (addr) => addr._id === selectedAddressId
   );
 
-  if (status === "loading" && !cart.length && !message) {
+  // Filter out invalid cart items before rendering anything
+  const validCartItems = (cart || []).filter((item) => item && item.product);
+
+  if (status === "loading" && !cart?.length && !message) {
     return (
       <Box textAlign="center" my={10}>
         <CircularProgress />
@@ -193,11 +204,10 @@ const CartPage = () => {
     );
   }
 
-  // --- ADDED: Notification ka color set karne ke liye helper function ---
   const getNotificationColor = (severity) => {
-    if (severity === "error") return "#f44336"; // Red
-    if (severity === "warning") return "#ff9800"; // Orange
-    return "#2196f3"; // Blue for info
+    if (severity === "error") return "#f44336";
+    if (severity === "warning") return "#ff9800";
+    return "#2196f3";
   };
 
   return (
@@ -206,7 +216,7 @@ const CartPage = () => {
         Your Shopping Cart
       </Typography>
 
-      {!cart || cart.length === 0 ? (
+      {validCartItems.length === 0 ? (
         <Paper style={{ textAlign: "center", padding: "4rem" }}>
           <Typography variant="h6">Your cart is empty.</Typography>
           <Button
@@ -223,7 +233,8 @@ const CartPage = () => {
         <Grid container spacing={4}>
           <Grid item xs={12} md={8}>
             <Paper elevation={2} style={{ padding: "1rem 2rem" }}>
-              {cart.map(({ product, quantity }, index) => (
+              {/* --- FIX 2: Map over the pre-filtered valid items --- */}
+              {validCartItems.map(({ product, quantity }, index) => (
                 <React.Fragment key={product._id}>
                   <div className={classes.cartItemRow}>
                     <img
@@ -270,7 +281,7 @@ const CartPage = () => {
                       <DeleteIcon />
                     </IconButton>
                   </div>
-                  {index < cart.length - 1 && <Divider />}
+                  {index < validCartItems.length - 1 && <Divider />}
                 </React.Fragment>
               ))}
             </Paper>
@@ -372,7 +383,9 @@ const CartPage = () => {
                 key={addr._id}
                 variant="outlined"
                 onClick={() => handleSelectAddress(addr._id)}
-                className={`${classes.addressCardSelectable} ${selectedAddressId === addr._id ? classes.selectedAddress : ""}`}
+                className={`${classes.addressCardSelectable} ${
+                  selectedAddressId === addr._id ? classes.selectedAddress : ""
+                }`}
               >
                 <Typography variant="body1" style={{ fontWeight: 500 }}>
                   {addr.name} ({addr.type})
@@ -398,7 +411,6 @@ const CartPage = () => {
         </div>
       </Modal>
 
-      {/* --- MODIFIED: Snackbar ab Paper component ka use kar raha hai --- */}
       <Snackbar
         open={notification.open}
         autoHideDuration={6000}
