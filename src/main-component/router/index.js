@@ -36,6 +36,8 @@ import AddEditProductPage from "../../pages/admin/AddEditProductPage";
 import OtpVerificationPage from "../OtpVerificationPage";
 import Privacypolicy from "../PrivacyPolicy";
 import TermsAndConditions from "../TermsAndCondition";
+import PaymentPage from "../../pages/paymentpage";
+import OrderConfirmationPage from "../../pages/OrderConfirmationPage";
 
 const AllRoute = () => {
   return (
@@ -54,9 +56,13 @@ const AllRoute = () => {
       <Route path="/verify-otp" element={<OtpVerificationPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/blog" element={<Blog />} />
-      <Route path="/termandcond" element={<TermsAndConditions/>}/>
-      <Route path="privacypolicy" element={<Privacypolicy/>}/>
-
+      <Route path="/termandcond" element={<TermsAndConditions />} />
+      <Route path="privacypolicy" element={<Privacypolicy />} />
+      <Route path="/payment" element={<PaymentPage />} />
+      <Route
+        path="/order-confirmation/:orderId"
+        element={<OrderConfirmationPage />}
+      />
 
       {/* --- User Protected Routes --- */}
       <Route
