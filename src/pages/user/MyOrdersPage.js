@@ -57,9 +57,9 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: colors.cardBg,
     padding: theme.spacing(1, 0),
     [theme.breakpoints.down("xs")]: {
-      boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-      borderRadius: "8px",
-      padding: theme.spacing(0.5, 0),
+      boxShadow: "none",
+      borderRadius: 0,
+      padding: 0,
     },
   },
   tabs: {
@@ -93,15 +93,21 @@ const useStyles = makeStyles((theme) => ({
   orderCard: {
     padding: theme.spacing(1.5),
     margin: theme.spacing(1, 0),
+    background: colors.cardBg,
+    borderRadius: "12px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
     [theme.breakpoints.up("sm")]: {
       padding: theme.spacing(3),
       margin: theme.spacing(2, 0),
+      borderRadius: "12px",
+      boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
     },
     [theme.breakpoints.down("xs")]: {
       padding: theme.spacing(1),
-      margin: theme.spacing(0.5, 0),
-      borderRadius: "8px",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+      margin: theme.spacing(1, 0),
+      borderRadius: "10px",
+      boxShadow: "0 1px 6px rgba(0,0,0,0.08)",
+      background: "#fff",
     },
   },
   orderHeader: {
@@ -322,7 +328,7 @@ const MyOrdersPage = () => {
                     VIEW DETAILS
                   </Button>
                 </Box>
-                <Divider style={{ margin: "8px 0" }} />
+                <Divider style={{ margin: "8px 0", borderRadius: "8px" }} />
                 <Box className={classes.productImages}>
                   {order.orderItems?.map((item, idx) => (
                     <Avatar
