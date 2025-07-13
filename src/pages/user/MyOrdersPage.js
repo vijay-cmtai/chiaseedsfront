@@ -1,5 +1,3 @@
-// src/pages/user/MyOrdersPage.js (FULLY RESPONSIVE CODE)
-
 import React, { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -32,104 +30,181 @@ const colors = {
   lightAmber: "#fff8e1",
 };
 
-// === YAHAN PAR SABSE ZAROORI BADLAV HAIN ===
 const useStyles = makeStyles((theme) => ({
   pageContainer: {
-    padding: theme.spacing(2), // Mobile par kam padding
+    padding: theme.spacing(1),
     backgroundColor: "#f8f9fa",
     [theme.breakpoints.up("sm")]: {
-      padding: theme.spacing(4), // Desktop par zyada padding
+      padding: theme.spacing(4),
+    },
+    [theme.breakpoints.down("xs")]: {
+      padding: "2vw 1vw",
     },
   },
   header: {
     fontWeight: "bold",
     color: colors.textDark,
-    marginBottom: theme.spacing(3),
+    marginBottom: theme.spacing(2),
+    [theme.breakpoints.down("sm")]: {
+      fontSize: "1.3rem",
+      marginBottom: theme.spacing(1.5),
+      textAlign: "center",
+    },
   },
   ordersContainer: {
     borderRadius: "12px",
     boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
     backgroundColor: colors.cardBg,
     padding: theme.spacing(1, 0),
+    [theme.breakpoints.down("xs")]: {
+      boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+      borderRadius: "8px",
+      padding: theme.spacing(0.5, 0),
+    },
   },
   tabs: {
     borderBottom: `1px solid ${colors.borderColor}`,
     "& .MuiTabs-indicator": { backgroundColor: colors.textDark },
+    [theme.breakpoints.down("sm")]: {
+      minHeight: "40px",
+      fontSize: "0.85rem",
+    },
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.8rem",
+      minHeight: "36px",
+    },
   },
   tab: {
     textTransform: "none",
     fontWeight: 600,
     color: colors.textMuted,
     "&.Mui-selected": { color: colors.textDark },
+    [theme.breakpoints.down("sm")]: {
+      fontSize: "0.8rem",
+      padding: theme.spacing(0.5),
+      minWidth: 60,
+    },
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.75rem",
+      padding: theme.spacing(0.3),
+      minWidth: 48,
+    },
   },
   orderCard: {
-    padding: theme.spacing(2), // Mobile par kam padding
+    padding: theme.spacing(1.5),
+    margin: theme.spacing(1, 0),
     [theme.breakpoints.up("sm")]: {
-      padding: theme.spacing(3), // Desktop par zyada
+      padding: theme.spacing(3),
+      margin: theme.spacing(2, 0),
+    },
+    [theme.breakpoints.down("xs")]: {
+      padding: theme.spacing(1),
+      margin: theme.spacing(0.5, 0),
+      borderRadius: "8px",
+      boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
     },
   },
   orderHeader: {
     display: "flex",
-    flexDirection: "column", // Mobile par ek ke neeche ek
-    alignItems: "flex-start", // Left-align
+    flexDirection: "column",
+    alignItems: "flex-start",
     gap: theme.spacing(1),
-    marginBottom: theme.spacing(2),
+    marginBottom: theme.spacing(1.5),
     [theme.breakpoints.up("sm")]: {
-      flexDirection: "row", // Desktop par side-by-side
+      flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
+    },
+    [theme.breakpoints.down("xs")]: {
+      flexDirection: "column",
+      alignItems: "stretch",
+      gap: theme.spacing(1),
+      marginBottom: theme.spacing(1),
     },
   },
   orderId: {
     fontWeight: "bold",
-    fontSize: "1.1rem", // Thoda chhota
+    fontSize: "1.05rem",
     color: colors.textDark,
+    [theme.breakpoints.down("sm")]: {
+      fontSize: "0.95rem",
+    },
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.9rem",
+    },
   },
-  orderDate: { color: colors.textMuted, fontSize: "0.9rem" },
+  orderDate: { color: colors.textMuted, fontSize: "0.85rem" },
   viewDetailsButton: {
     color: colors.primary,
     fontWeight: "bold",
     fontSize: "0.8rem",
-    padding: theme.spacing(0.5, 0), // Padding theek ki
-    alignSelf: "flex-end", // Mobile par button ko right me rakhega
+    padding: theme.spacing(0.5, 0),
+    alignSelf: "flex-end",
     [theme.breakpoints.up("sm")]: {
-      alignSelf: "center", // Desktop par wapas center me
+      alignSelf: "center",
+    },
+    [theme.breakpoints.down("sm")]: {
+      fontSize: "0.75rem",
+    },
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.7rem",
+      padding: theme.spacing(0.2, 0),
     },
   },
   productImages: {
     display: "flex",
-    gap: theme.spacing(1.5),
-    padding: theme.spacing(2, 0),
-    overflowX: "auto", // Agar zyada images hon to scroll ho
+    gap: theme.spacing(1),
+    padding: theme.spacing(1.5, 0),
+    overflowX: "auto",
+    [theme.breakpoints.down("xs")]: {
+      gap: theme.spacing(0.5),
+      padding: theme.spacing(1, 0),
+    },
   },
   productAvatar: {
-    width: theme.spacing(7),
-    height: theme.spacing(7),
+    width: theme.spacing(6.5),
+    height: theme.spacing(6.5),
     borderRadius: "8px",
     backgroundColor: "#e0e0e0",
     border: "1px solid #eee",
+    [theme.breakpoints.down("sm")]: {
+      width: theme.spacing(5.5),
+      height: theme.spacing(5.5),
+    },
+    [theme.breakpoints.down("xs")]: {
+      width: theme.spacing(4.5),
+      height: theme.spacing(4.5),
+    },
   },
   orderFooter: {
     display: "flex",
-    flexDirection: "column", // Mobile par ek ke neeche ek
+    flexDirection: "column",
     alignItems: "flex-start",
-    gap: theme.spacing(1.5),
-    marginTop: theme.spacing(2),
+    gap: theme.spacing(1),
+    marginTop: theme.spacing(1.5),
     [theme.breakpoints.up("sm")]: {
-      flexDirection: "row", // Desktop par side-by-side
+      flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
     },
+    [theme.breakpoints.down("xs")]: {
+      flexDirection: "column",
+      alignItems: "stretch",
+      gap: theme.spacing(1),
+      marginTop: theme.spacing(1),
+    },
   },
-  orderTotal: { fontWeight: "bold", color: colors.textDark },
+  orderTotal: { fontWeight: "bold", color: colors.textDark, fontSize: "1rem" },
   chip: {
     borderRadius: "16px",
     fontWeight: "bold",
-    height: "26px",
+    height: "24px",
     fontSize: "0.8rem",
     textTransform: "capitalize",
     [theme.breakpoints.down("xs")]: {
-      alignSelf: "flex-end", // Mobile par status chip ko right me rakhega
+      alignSelf: "flex-end",
+      fontSize: "0.7rem",
+      height: "20px",
     },
   },
   statusCompleted: { backgroundColor: colors.lightGreen, color: colors.green },
@@ -223,8 +298,7 @@ const MyOrdersPage = () => {
           <Tab label="Pending" className={classes.tab} />
           <Tab label="Processing" className={classes.tab} />
           <Tab label="Shipped" className={classes.tab} />
-          <Tab label="Completed" className={classes.tab} />{" "}
-          {/* 'Delivered' ko 'Completed' se match karein */}
+          <Tab label="Completed" className={classes.tab} />
           <Tab label="Cancelled" className={classes.tab} />
         </Tabs>
         {filteredOrders.length > 0 ? (
@@ -288,5 +362,4 @@ const MyOrdersPage = () => {
     </div>
   );
 };
-
 export default MyOrdersPage;
