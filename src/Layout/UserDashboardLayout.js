@@ -1,6 +1,4 @@
-// src/Layout/UserDashboardLayout.js (ERROR FIXED CODE)
-
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -10,13 +8,13 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
-  makeStyles,
   CssBaseline,
   AppBar,
   Toolbar,
   IconButton,
   useTheme,
   useMediaQuery,
+  Box,
 } from "@material-ui/core";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import ShoppingBasketIcon from "@material-ui/icons/ShoppingBasket";
@@ -27,6 +25,7 @@ import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import ShoppingCartIcon from "@material-ui/icons/ShoppingCart";
 import HomeIcon from "@material-ui/icons/Home";
 import MenuIcon from "@material-ui/icons/Menu";
+import { makeStyles } from "@material-ui/core/styles";
 
 import { logout, reset } from "../features/auth/authSlice";
 
@@ -46,6 +45,7 @@ const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
     fontFamily: "'Poppins', sans-serif",
+    minHeight: "100vh",
   },
   appBarMobile: {
     [theme.breakpoints.up("md")]: {
@@ -55,6 +55,10 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     flexGrow: 1,
+    fontSize: "1.2rem",
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "1rem",
+    },
   },
   drawer: {
     [theme.breakpoints.up("md")]: {
@@ -66,12 +70,18 @@ const useStyles = makeStyles((theme) => ({
     width: drawerWidth,
     backgroundColor: colors.sidebarBg,
     borderRight: "none",
+    [theme.breakpoints.down("sm")]: {
+      width: "80vw",
+      maxWidth: 300,
+    },
   },
   content: {
     flexGrow: 1,
     padding: theme.spacing(3),
     backgroundColor: colors.contentBg,
-    minHeight: "100vh",
+    [theme.breakpoints.down("xs")]: {
+      padding: theme.spacing(2),
+    },
   },
   toolbar: theme.mixins.toolbar,
   sidebarHeader: {
@@ -80,32 +90,51 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: "rgba(0, 0, 0, 0.15)",
   },
   sidebarHeaderText: {
-    fontSize: "22px",
-    fontWeight: "700",
+    fontSize: "1.3rem",
+    fontWeight: 700,
     color: colors.sidebarTextActive,
-    letterSpacing: "1.5px",
+    letterSpacing: "1.2px",
     textTransform: "uppercase",
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "1.1rem",
+    },
   },
   navList: {
-    padding: theme.spacing(1, 1),
+    padding: theme.spacing(1),
   },
   listItem: {
     margin: theme.spacing(0.5, 1),
     padding: theme.spacing(1.2, 2),
     borderRadius: "8px",
     color: colors.sidebarText,
-    "& .MuiListItemIcon-root": { minWidth: "45px" },
+    "& .MuiListItemIcon-root": {
+      minWidth: 40,
+      color: colors.sidebarText,
+    },
     "&:hover": {
       backgroundColor: colors.sidebarHoverBg,
       color: colors.sidebarTextActive,
+      "& .MuiListItemIcon-root": {
+        color: colors.sidebarTextActive,
+      },
+    },
+    [theme.breakpoints.down("xs")]: {
+      padding: theme.spacing(1, 1.5),
     },
   },
   activeLink: {
     backgroundColor: colors.primary,
     color: colors.sidebarTextActive,
     boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-    "& .MuiListItemText-primary": { fontWeight: 500 },
-    "&:hover": { backgroundColor: colors.primaryHover },
+    "& .MuiListItemText-primary": {
+      fontWeight: 500,
+    },
+    "& .MuiListItemIcon-root": {
+      color: colors.sidebarTextActive,
+    },
+    "&:hover": {
+      backgroundColor: colors.primaryHover,
+    },
   },
   sidebarFooter: {
     marginTop: "auto",
@@ -119,32 +148,34 @@ const UserDashboardLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
-  const { user } = useSelector((state) => state.auth);
-
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { user } = useSelector((state) => state.auth);
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     dispatch(logout());
     dispatch(reset());
     navigate("/login");
-  };
+  }, [dispatch, navigate]);
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  const handleDrawerToggle = useCallback(() => {
+    setMobileOpen((prev) => !prev);
+  }, []);
 
-  const userNavItems = [
-    { text: "Dashboard", to: "/user/dashboard", icon: <DashboardIcon /> },
-    { text: "My Orders", to: "/user/orders", icon: <ShoppingBasketIcon /> },
-    { text: "My Cart", to: "/user/cart", icon: <ShoppingCartIcon /> },
-    { text: "Wishlist", to: "/user/wishlist", icon: <FavoriteIcon /> },
-    { text: "Profile", to: "/user/profile", icon: <AccountCircleIcon /> },
-    { text: "Address", to: "/user/address", icon: <LocationOnIcon /> },
-  ];
+  const userNavItems = useMemo(
+    () => [
+      { text: "Dashboard", to: "/user/dashboard", icon: <DashboardIcon /> },
+      { text: "My Orders", to: "/user/orders", icon: <ShoppingBasketIcon /> },
+      { text: "My Cart", to: "/user/cart", icon: <ShoppingCartIcon /> },
+      { text: "Wishlist", to: "/user/wishlist", icon: <FavoriteIcon /> },
+      { text: "Profile", to: "/user/profile", icon: <AccountCircleIcon /> },
+      { text: "Address", to: "/user/address", icon: <LocationOnIcon /> },
+    ],
+    []
+  );
 
   const drawerContent = (
-    <div>
+    <Box display="flex" flexDirection="column" height="100%">
       <div className={classes.sidebarHeader}>
         <Typography variant="h5" className={classes.sidebarHeaderText}>
           User Panel
@@ -162,7 +193,8 @@ const UserDashboardLayout = () => {
                 ? `${classes.listItem} ${classes.activeLink}`
                 : classes.listItem
             }
-            onClick={isMobile ? handleDrawerToggle : null}
+            onClick={isMobile ? handleDrawerToggle : undefined}
+            aria-label={item.text}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
@@ -170,26 +202,36 @@ const UserDashboardLayout = () => {
         ))}
       </List>
       <div className={classes.sidebarFooter}>
-        <ListItem button component={Link} to="/" className={classes.listItem}>
+        <ListItem
+          button
+          component={Link}
+          to="/"
+          className={classes.listItem}
+          aria-label="Back to Home"
+        >
           <ListItemIcon>
             <HomeIcon />
           </ListItemIcon>
           <ListItemText primary="Back to Home" />
         </ListItem>
-        <ListItem button onClick={handleLogout} className={classes.listItem}>
+        <ListItem
+          button
+          onClick={handleLogout}
+          className={classes.listItem}
+          aria-label="Sign Out"
+        >
           <ListItemIcon>
             <ExitToAppIcon />
           </ListItemIcon>
           <ListItemText primary="Sign Out" />
         </ListItem>
       </div>
-    </div>
+    </Box>
   );
 
   return (
     <div className={classes.root}>
       <CssBaseline />
-
       <AppBar position="fixed" className={classes.appBarMobile}>
         <Toolbar>
           <IconButton
@@ -201,12 +243,10 @@ const UserDashboardLayout = () => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap className={classes.title}>
-            {/* === YAHAN PAR ERROR THEEK KIYA GAYA HAI === */}
-            Hello, {user && user.name ? user.name.split(" ")[0] : "Guest"}!
+            Hello, {user?.name?.split(" ")[0] ?? "Guest"}!
           </Typography>
         </Toolbar>
       </AppBar>
-
       <nav className={classes.drawer} aria-label="user navigation">
         {isMobile ? (
           <Drawer
@@ -228,7 +268,6 @@ const UserDashboardLayout = () => {
           </Drawer>
         )}
       </nav>
-
       <main className={classes.content}>
         {isMobile && <div className={classes.toolbar} />}
         <Outlet />
@@ -237,4 +276,4 @@ const UserDashboardLayout = () => {
   );
 };
 
-export default UserDashboardLayout;
+export default React.memo(UserDashboardLayout);
