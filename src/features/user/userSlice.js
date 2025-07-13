@@ -17,7 +17,6 @@ const initialState = {
   message: "",
 };
 
-// यह हेल्पर फंक्शन आपके सभी async thunks को बनाता है
 const createApiThunk = (name, apiCall) => {
   return createAsyncThunk(`user/${name}`, async (arg, thunkAPI) => {
     try {
@@ -33,7 +32,6 @@ const createApiThunk = (name, apiCall) => {
   });
 };
 
-// --- आपके सभी async actions (thunks) ---
 export const getMyProfile = createApiThunk("getMyProfile", userService.getMyProfile);
 export const updateMyProfile = createApiThunk("updateMyProfile", userService.updateMyProfile);
 export const updateUserAvatar = createApiThunk("updateUserAvatar", userService.updateUserAvatar);
