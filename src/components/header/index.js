@@ -8,7 +8,7 @@ import { logout } from "../../features/auth/authSlice";
 // Profile data fetch karne ke liye action import karein
 import { getMyProfile } from "../../features/user/userSlice";
 
-// --- Styles (Koi Badlav Nahi) ---
+// --- Styles ---
 const colors = {
   primary: "#878fba",
   primaryHover: "#6c749d",
@@ -24,8 +24,8 @@ const headerStyles = `
     header#header.site-header { background-color: ${colors.headerBg} !important; border-bottom: 1px solid ${colors.borderColor} !important; } 
     #header .navigation-holder .navbar-nav > li > a { color: ${colors.accent1} !important; font-weight: 500 !important; } 
     #header .navigation-holder .navbar-nav > li > a:hover, #header .navigation-holder .navbar-nav > li > a.active { color: ${colors.primary} !important; } 
-    #header .header-right { gap: 5px; display: flex; align-items: center; } 
-    #header .header-right .profile-toggle-btn, #header .header-right .cart-toggle-btn, #header .header-right .wishlist-toggle-btn { color: ${colors.accent1} !important; background: #f8f5f0; border-radius: 50%; width: 40px; height: 40px; line-height: 40px; text-align: center; cursor: pointer; border: none; padding: 0; position: relative; } 
+    #header .header-right { gap: 5px; display: flex; align-items: center; justify-content: flex-end; } 
+    #header .header-right .profile-toggle-btn, #header .header-right .cart-toggle-btn, #header .header-right .wishlist-toggle-btn { color: ${colors.accent1} !important; background: #f8f5f0; border-radius: 50%; width: 40px; height: 40px; line-height: 40px; text-align: center; cursor: pointer; border: none; padding: 0; position: relative; margin-left: 10px; } 
     #header .header-right .cart-count { position: absolute; top: -2px; right: -2px; background-color: ${colors.primary}; color: ${colors.textLight}; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; line-height: 1; }
     #header .auth-buttons { display: flex; align-items: center; gap: 10px; margin-left: 15px; } 
     #header .auth-buttons .btn { padding: 8px 20px !important; border-radius: 8px !important; font-weight: 600 !important; font-size: 15px !important; text-decoration: none !important; transition: all 0.3s ease !important; line-height: 1.5 !important; border: 2px solid transparent !important; } 
@@ -42,6 +42,32 @@ const headerStyles = `
     #header .profile-dropdown ul { list-style: none; padding: 10px 0; margin: 0; } 
     #header .profile-dropdown ul li a, #header .profile-dropdown ul li button { display: block; width: 100%; padding: 10px 20px; color: ${colors.accent1}; text-decoration: none; background: none; border: none; text-align: left; font-size: 15px; cursor: pointer; transition: background-color 0.2s ease; } 
     #header .profile-dropdown ul li a:hover, #header .profile-dropdown ul li button:hover { background-color: ${colors.dropdownBg}; }
+    @media (max-width: 991px) {
+      #header .header-right .profile-toggle-btn {
+        width: 35px;
+        height: 35px;
+        line-height: 35px;
+        font-size: 14px;
+      }
+      #header .header-right .cart-toggle-btn,
+      #header .header-right .wishlist-toggle-btn {
+        width: 35px;
+        height: 35px;
+        line-height: 35px;
+        font-size: 14px;
+        margin-left: 5px;
+      }
+      #header .profile-dropdown {
+        top: 50px;
+        right: 10px;
+        width: 200px;
+      }
+      #header .profile-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+    }
 `;
 
 class Header extends Component {
@@ -50,6 +76,7 @@ class Header extends Component {
 
   componentDidMount() {
     document.addEventListener("mousedown", this.handleClickOutside);
+    document.addEventListener("touchstart", this.handleClickOutside);
     if (this.props.isAuthenticated && !this.props.profile) {
       this.props.getMyProfile();
     }
@@ -57,6 +84,7 @@ class Header extends Component {
 
   componentWillUnmount() {
     document.removeEventListener("mousedown", this.handleClickOutside);
+    document.removeEventListener("touchstart", this.handleClickOutside);
   }
 
   handleClickOutside = (e) => {
@@ -79,7 +107,6 @@ class Header extends Component {
   render() {
     const { isProfileShow } = this.state;
     const { carts, wishs, isAuthenticated, user, profile } = this.props;
-    // Use the detailed profile if available, otherwise fallback to the basic auth user
     const displayUser = profile || user;
 
     const ClickHandler = () => window.scrollTo(10, 0);
@@ -143,8 +170,37 @@ class Header extends Component {
                 <div className="col-lg-3">
                   <div className="header-right d-flex align-items-center justify-content-end">
                     {isAuthenticated ? (
-                      // If User is Logged In
                       <>
+                        {displayUser?.role === "user" && (
+                          <>
+                            <button
+                              className="cart-toggle-btn"
+                              onClick={() => this.props.navigate("/user/cart")}
+                              title="View Cart"
+                            >
+                              <i className="fi flaticon-bag"></i>
+                              {(carts?.length || 0) > 0 && (
+                                <span className="cart-count">
+                                  {carts.length}
+                                </span>
+                              )}
+                            </button>
+                            <button
+                              className="wishlist-toggle-btn"
+                              onClick={() =>
+                                this.props.navigate("/user/wishlist")
+                              }
+                              title="View Wishlist"
+                            >
+                              <i className="fi flaticon-heart"></i>
+                              {(wishs?.length || 0) > 0 && (
+                                <span className="cart-count">
+                                  {wishs.length}
+                                </span>
+                              )}
+                            </button>
+                          </>
+                        )}
                         <div
                           className="profile-dropdown-wrapper"
                           ref={this.profileNode}
@@ -186,43 +242,8 @@ class Header extends Component {
                             </ul>
                           </div>
                         </div>
-
-                        {/* ====================================================================================== */}
-                        {/* === FIX IS HERE: Check the role from the 'displayUser' object (profile or user) === */}
-                        {/* ====================================================================================== */}
-                        {displayUser?.role === "user" && (
-                          <>
-                            <button
-                              className="cart-toggle-btn"
-                              onClick={() => this.props.navigate("/user/cart")}
-                              title="View Cart"
-                            >
-                              <i className="fi flaticon-bag"></i>
-                              {(carts?.length || 0) > 0 && (
-                                <span className="cart-count">
-                                  {carts.length}
-                                </span>
-                              )}
-                            </button>
-                            <button
-                              className="wishlist-toggle-btn"
-                              onClick={() =>
-                                this.props.navigate("/user/wishlist")
-                              }
-                              title="View Wishlist"
-                            >
-                              <i className="fi flaticon-heart"></i>
-                              {(wishs?.length || 0) > 0 && (
-                                <span className="cart-count">
-                                  {wishs.length}
-                                </span>
-                              )}
-                            </button>
-                          </>
-                        )}
                       </>
                     ) : (
-                      // If User is NOT Logged In
                       <div className="auth-buttons d-none d-lg-flex">
                         <Link
                           to="/login"
@@ -242,7 +263,7 @@ class Header extends Component {
                     )}
                     <MobileMenu
                       isAuthenticated={isAuthenticated}
-                      onLogout={this.handleLogout} // Logout function ko prop ke roop me bhejein
+                      onLogout={this.handleLogout}
                     />
                   </div>
                 </div>
