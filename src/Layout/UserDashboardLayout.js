@@ -1,10 +1,8 @@
-// src/Layout/UserDashboardLayout.js (ALL ERRORS FIXED)
+// src/Layout/UserDashboardLayout.js (ERROR FIXED CODE)
 
 import React from "react";
-// FIX 1: Imports ko sahi library se alag-alag kiya gaya
 import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-
 import {
   Drawer,
   List,
@@ -55,6 +53,9 @@ const useStyles = makeStyles((theme) => ({
     },
     backgroundColor: colors.sidebarBg,
   },
+  title: {
+    flexGrow: 1,
+  },
   drawer: {
     [theme.breakpoints.up("md")]: {
       width: drawerWidth,
@@ -72,9 +73,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: colors.contentBg,
     minHeight: "100vh",
   },
-  toolbarDense: {
-    minHeight: 48,
-  },
+  toolbar: theme.mixins.toolbar,
   sidebarHeader: {
     padding: theme.spacing(3),
     textAlign: "center",
@@ -120,8 +119,7 @@ const UserDashboardLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
-  // Hum abhi naam nahi dikha rahe, isliye useSelector ko comment kar sakte hain ya rakhe rehne de
-  // const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.auth);
 
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -174,15 +172,13 @@ const UserDashboardLayout = () => {
       <div className={classes.sidebarFooter}>
         <ListItem button component={Link} to="/" className={classes.listItem}>
           <ListItemIcon>
-            {" "}
-            <HomeIcon />{" "}
+            <HomeIcon />
           </ListItemIcon>
           <ListItemText primary="Back to Home" />
         </ListItem>
         <ListItem button onClick={handleLogout} className={classes.listItem}>
           <ListItemIcon>
-            {" "}
-            <ExitToAppIcon />{" "}
+            <ExitToAppIcon />
           </ListItemIcon>
           <ListItemText primary="Sign Out" />
         </ListItem>
@@ -195,7 +191,7 @@ const UserDashboardLayout = () => {
       <CssBaseline />
 
       <AppBar position="fixed" className={classes.appBarMobile}>
-        <Toolbar variant="dense">
+        <Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -204,6 +200,10 @@ const UserDashboardLayout = () => {
           >
             <MenuIcon />
           </IconButton>
+          <Typography variant="h6" noWrap className={classes.title}>
+            {/* === YAHAN PAR ERROR THEEK KIYA GAYA HAI === */}
+            Hello, {user && user.name ? user.name.split(" ")[0] : "Guest"}!
+          </Typography>
         </Toolbar>
       </AppBar>
 
@@ -220,7 +220,6 @@ const UserDashboardLayout = () => {
           </Drawer>
         ) : (
           <Drawer
-            // FIX 2: 'a' ki jagah 'classes' kiya gaya
             classes={{ paper: classes.drawerPaper }}
             variant="permanent"
             open
@@ -231,7 +230,7 @@ const UserDashboardLayout = () => {
       </nav>
 
       <main className={classes.content}>
-        {isMobile && <div className={classes.toolbarDense} />}
+        {isMobile && <div className={classes.toolbar} />}
         <Outlet />
       </main>
     </div>
