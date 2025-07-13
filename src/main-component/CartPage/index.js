@@ -144,12 +144,19 @@ const CartPage = () => {
     status: userStatus,
     message: userMessage,
   } = useSelector((state) => state.user || {});
+
+  // =================================================================
+  // === FIX APPLIED ON THE LINE BELOW ===============================
+  // We added `|| {}` as a fallback. If `state.payment` is undefined,
+  // it will use an empty object, preventing the app from crashing.
+  // =================================================================
   const {
     status: paymentStatus,
     message: paymentMessage,
     razorpayOrder,
     finalOrder,
-  } = useSelector((state) => state.payment);
+  } = useSelector((state) => state.payment || {});
+
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [notification, setNotification] = useState({
@@ -182,8 +189,8 @@ const CartPage = () => {
       userStatus === "failed"
         ? userMessage
         : paymentStatus === "failed"
-        ? paymentMessage
-        : null;
+          ? paymentMessage
+          : null;
     if (errorMsg) {
       setNotification({ open: true, msg: errorMsg, severity: "error" });
       dispatch(resetUserStatus());
