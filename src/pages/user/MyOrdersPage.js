@@ -1,4 +1,4 @@
-// src/pages/user/MyOrdersPage.js (FINAL CORRECTED CODE)
+// src/pages/user/MyOrdersPage.js (FULLY RESPONSIVE CODE)
 
 import React, { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -18,7 +18,6 @@ import {
 } from "@material-ui/core";
 import { getMyOrders } from "../../features/user/userSlice";
 
-// --- Styles (No Changes) ---
 const colors = {
   primary: "#6B5B95",
   textDark: "#3d2b56",
@@ -33,8 +32,15 @@ const colors = {
   lightAmber: "#fff8e1",
 };
 
+// === YAHAN PAR SABSE ZAROORI BADLAV HAIN ===
 const useStyles = makeStyles((theme) => ({
-  pageContainer: { padding: theme.spacing(3), backgroundColor: "#f8f9fa" },
+  pageContainer: {
+    padding: theme.spacing(2), // Mobile par kam padding
+    backgroundColor: "#f8f9fa",
+    [theme.breakpoints.up("sm")]: {
+      padding: theme.spacing(4), // Desktop par zyada padding
+    },
+  },
   header: {
     fontWeight: "bold",
     color: colors.textDark,
@@ -56,24 +62,45 @@ const useStyles = makeStyles((theme) => ({
     color: colors.textMuted,
     "&.Mui-selected": { color: colors.textDark },
   },
-  orderCard: { padding: theme.spacing(3) },
+  orderCard: {
+    padding: theme.spacing(2), // Mobile par kam padding
+    [theme.breakpoints.up("sm")]: {
+      padding: theme.spacing(3), // Desktop par zyada
+    },
+  },
   orderHeader: {
     display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: "column", // Mobile par ek ke neeche ek
+    alignItems: "flex-start", // Left-align
+    gap: theme.spacing(1),
     marginBottom: theme.spacing(2),
+    [theme.breakpoints.up("sm")]: {
+      flexDirection: "row", // Desktop par side-by-side
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
   },
-  orderId: { fontWeight: "bold", fontSize: "1.2rem", color: colors.textDark },
+  orderId: {
+    fontWeight: "bold",
+    fontSize: "1.1rem", // Thoda chhota
+    color: colors.textDark,
+  },
   orderDate: { color: colors.textMuted, fontSize: "0.9rem" },
   viewDetailsButton: {
     color: colors.primary,
     fontWeight: "bold",
     fontSize: "0.8rem",
+    padding: theme.spacing(0.5, 0), // Padding theek ki
+    alignSelf: "flex-end", // Mobile par button ko right me rakhega
+    [theme.breakpoints.up("sm")]: {
+      alignSelf: "center", // Desktop par wapas center me
+    },
   },
   productImages: {
     display: "flex",
     gap: theme.spacing(1.5),
     padding: theme.spacing(2, 0),
+    overflowX: "auto", // Agar zyada images hon to scroll ho
   },
   productAvatar: {
     width: theme.spacing(7),
@@ -84,9 +111,15 @@ const useStyles = makeStyles((theme) => ({
   },
   orderFooter: {
     display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: "column", // Mobile par ek ke neeche ek
+    alignItems: "flex-start",
+    gap: theme.spacing(1.5),
     marginTop: theme.spacing(2),
+    [theme.breakpoints.up("sm")]: {
+      flexDirection: "row", // Desktop par side-by-side
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
   },
   orderTotal: { fontWeight: "bold", color: colors.textDark },
   chip: {
@@ -95,6 +128,9 @@ const useStyles = makeStyles((theme) => ({
     height: "26px",
     fontSize: "0.8rem",
     textTransform: "capitalize",
+    [theme.breakpoints.down("xs")]: {
+      alignSelf: "flex-end", // Mobile par status chip ko right me rakhega
+    },
   },
   statusCompleted: { backgroundColor: colors.lightGreen, color: colors.green },
   statusShipped: { backgroundColor: colors.lightBlue, color: colors.blue },
@@ -187,7 +223,8 @@ const MyOrdersPage = () => {
           <Tab label="Pending" className={classes.tab} />
           <Tab label="Processing" className={classes.tab} />
           <Tab label="Shipped" className={classes.tab} />
-          <Tab label="Delivered" className={classes.tab} />
+          <Tab label="Completed" className={classes.tab} />{" "}
+          {/* 'Delivered' ko 'Completed' se match karein */}
           <Tab label="Cancelled" className={classes.tab} />
         </Tabs>
         {filteredOrders.length > 0 ? (
@@ -211,10 +248,9 @@ const MyOrdersPage = () => {
                     VIEW DETAILS
                   </Button>
                 </Box>
+                <Divider style={{ margin: "8px 0" }} />
                 <Box className={classes.productImages}>
                   {order.orderItems?.map((item, idx) => (
-                    // === THE FIX IS HERE ===
-                    // We directly use item.product.mainImage as it is a string URL
                     <Avatar
                       key={idx}
                       src={item.product?.mainImage}
@@ -225,6 +261,7 @@ const MyOrdersPage = () => {
                     </Avatar>
                   ))}
                 </Box>
+                <Divider style={{ margin: "8px 0" }} />
                 <Box className={classes.orderFooter}>
                   <Typography variant="body1" className={classes.orderTotal}>
                     Total: ₹{order.totalPrice.toLocaleString()}
