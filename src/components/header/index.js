@@ -24,17 +24,17 @@ const headerStyles = `
     header#header.site-header { background-color: ${colors.headerBg} !important; border-bottom: 1px solid ${colors.borderColor} !important; } 
     #header .navigation-holder .navbar-nav > li > a { color: ${colors.accent1} !important; font-weight: 500 !important; } 
     #header .navigation-holder .navbar-nav > li > a:hover, #header .navigation-holder .navbar-nav > li > a.active { color: ${colors.primary} !important; } 
-    #header .header-right { gap: 5px; display: flex; align-items: center; justify-content: flex-end; } 
-    #header .header-right .profile-toggle-btn, #header .header-right .cart-toggle-btn, #header .header-right .wishlist-toggle-btn { color: ${colors.accent1} !important; background: #f8f5f0; border-radius: 50%; width: 40px; height: 40px; line-height: 40px; text-align: center; cursor: pointer; border: none; padding: 0; position: relative; margin-left: 10px; } 
+    #header .header-right { gap: 8px; display: flex; align-items: center; justify-content: flex-end; width: 100%; } 
+    #header .header-right .profile-toggle-btn, #header .header-right .cart-toggle-btn, #header .header-right .wishlist-toggle-btn { color: ${colors.accent1} !important; background: #f8f5f0; border-radius: 50%; width: 40px; height: 40px; line-height: 40px; text-align: center; cursor: pointer; border: none; padding: 0; position: relative; margin: 0; } 
     #header .header-right .cart-count { position: absolute; top: -2px; right: -2px; background-color: ${colors.primary}; color: ${colors.textLight}; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; line-height: 1; }
-    #header .auth-buttons { display: flex; align-items: center; gap: 10px; margin-left: 15px; } 
+    #header .auth-buttons { display: flex; align-items: center; gap: 10px; margin-left: 0; } 
     #header .auth-buttons .btn { padding: 8px 20px !important; border-radius: 8px !important; font-weight: 600 !important; font-size: 15px !important; text-decoration: none !important; transition: all 0.3s ease !important; line-height: 1.5 !important; border: 2px solid transparent !important; } 
     #header .auth-buttons .btn-login { border-color: ${colors.primary} !important; color: ${colors.primary} !important; background-color: transparent !important; } 
     #header .auth-buttons .btn-login:hover { background-color: ${colors.primary} !important; color: ${colors.textLight} !important; } 
     #header .auth-buttons .btn-signup { background-color: ${colors.primary} !important; color: ${colors.textLight} !important; border-color: ${colors.primary} !important; } 
     #header .auth-buttons .btn-signup:hover { background-color: ${colors.primaryHover} !important; border-color: ${colors.primaryHover} !important; }
     #header .profile-dropdown-wrapper { position: relative; }
-    #header .profile-dropdown { position: absolute; top: 60px; right: 0; width: 220px; background: #ffffff; border: 1px solid ${colors.borderColor}; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 0; z-index: 999; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.2s ease; } 
+    #header .profile-dropdown { position: absolute; top: 50px; right: 0; width: 220px; background: #ffffff; border: 1px solid ${colors.borderColor}; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 0; z-index: 999; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.2s ease; } 
     #header .profile-dropdown.show { opacity: 1; visibility: visible; transform: translateY(0); } 
     #header .profile-dropdown .user-info { padding: 15px 20px; border-bottom: 1px solid ${colors.borderColor}; } 
     #header .profile-dropdown .user-info h6 { margin: 0 0 4px 0; font-weight: 600; color: ${colors.accent1}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } 
@@ -42,7 +42,16 @@ const headerStyles = `
     #header .profile-dropdown ul { list-style: none; padding: 10px 0; margin: 0; } 
     #header .profile-dropdown ul li a, #header .profile-dropdown ul li button { display: block; width: 100%; padding: 10px 20px; color: ${colors.accent1}; text-decoration: none; background: none; border: none; text-align: left; font-size: 15px; cursor: pointer; transition: background-color 0.2s ease; } 
     #header .profile-dropdown ul li a:hover, #header .profile-dropdown ul li button:hover { background-color: ${colors.dropdownBg}; }
+    
+    /* Mobile menu button alignment */
+    #header .mobile-menu-wrapper { margin-left: 8px; }
+    
     @media (max-width: 991px) {
+      #header .header-right {
+        gap: 5px;
+        justify-content: flex-end;
+        width: 100%;
+      }
       #header .header-right .profile-toggle-btn {
         width: 35px;
         height: 35px;
@@ -55,17 +64,19 @@ const headerStyles = `
         height: 35px;
         line-height: 35px;
         font-size: 14px;
-        margin-left: 5px;
       }
       #header .profile-dropdown {
-        top: 50px;
-        right: 10px;
+        top: 45px;
+        right: 0;
         width: 200px;
       }
       #header .profile-dropdown.show {
         opacity: 1;
         visibility: visible;
         transform: translateY(0);
+      }
+      #header .mobile-menu-wrapper {
+        margin-left: 5px;
       }
     }
 `;
@@ -168,7 +179,7 @@ class Header extends Component {
                   </div>
                 </div>
                 <div className="col-lg-3">
-                  <div className="header-right d-flex align-items-center justify-content-end">
+                  <div className="header-right">
                     {isAuthenticated ? (
                       <>
                         {displayUser?.role === "user" && (
@@ -261,10 +272,12 @@ class Header extends Component {
                         </Link>
                       </div>
                     )}
-                    <MobileMenu
-                      isAuthenticated={isAuthenticated}
-                      onLogout={this.handleLogout}
-                    />
+                    <div className="mobile-menu-wrapper">
+                      <MobileMenu
+                        isAuthenticated={isAuthenticated}
+                        onLogout={this.handleLogout}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
