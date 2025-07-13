@@ -1,5 +1,4 @@
 import axios from "axios";
-
 const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 
@@ -7,7 +6,6 @@ const api = axios.create({
   baseURL: `${BACKEND_URL}/api/v1/users`,
   withCredentials: true,
 });
-
 api.interceptors.request.use((config) => {
   const userString = localStorage.getItem("user");
   if (userString) {
