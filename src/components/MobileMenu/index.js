@@ -1,5 +1,3 @@
-// src/components/MobileMenu.js (FINAL FULL CODE)
-
 import React, { Component } from "react";
 import { Collapse, Card, CardBody } from "reactstrap";
 import { Link } from "react-router-dom";
@@ -10,10 +8,9 @@ const mobileMenuStyles = `
     .showmenu {
         display: none; /* Desktop par hide rahega */
     }
-    /* Sirf mobile/tablet par dikhega */
     @media (max-width: 991px) {
         .showmenu {
-            display: inline-block; 
+            display: inline-block; /* Sirf mobile par dikhega */
         }
     }
 
@@ -112,26 +109,34 @@ const mobileMenuStyles = `
         font-weight: 500;
     }
 
+    .mobileMenu .responsivemenu li p > i {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        transition: all 0.3s ease;
+    }
+
     .mobileMenu .responsivemenu li .card ul li a {
         padding-left: 35px;
     }
 
-    /* === AUTH BUTTONS STYLING === */
+    /* === AUTH BUTTONS CONTAINER === */
     .mobileMenu .responsivemenu .auth-buttons-container {
         margin-top: 20px;
         padding: 0 20px 20px 20px;
         display: flex;
         flex-direction: column;
         gap: 15px;
-        border-bottom: none;
+        border-bottom: none; /* Remove bottom border for this special li */
     }
 
     /* Common style for all auth buttons */
     .mobileMenu .responsivemenu .auth-buttons-container .btn {
         display: block;
         width: 100%;
+        height:40px
         text-align: center;
-        padding: 12px;
         border-radius: 8px;
         text-decoration: none;
         font-weight: 600;
@@ -139,10 +144,9 @@ const mobileMenuStyles = `
         transition: all 0.3s ease;
         border: 2px solid transparent;
         cursor: pointer;
-        line-height: 1.5; /* Line height fix for button text */
+        line-height: 1;
     }
 
-    /* Login button style */
     .mobileMenu .responsivemenu .auth-buttons-container .btn-login {
         background-color: transparent;
         border-color: #878fba;
@@ -153,7 +157,6 @@ const mobileMenuStyles = `
         color: #fff;
     }
 
-    /* Sign Up button style */
     .mobileMenu .responsivemenu .auth-buttons-container .btn-signup {
         background-color: #878fba;
         border-color: #878fba;
@@ -164,19 +167,18 @@ const mobileMenuStyles = `
         border-color: #6c749d;
     }
 
-    /* Sign Out button style (inherits from .btn) */
+    /* === SIGN OUT BUTTON FIX === */
     .mobileMenu .responsivemenu .auth-buttons-container .btn-logout {
-        background-color: transparent;
-        color: #c0392b;
-        border-color: #c0392b;
+        background-color: #e74c3c;  /* Solid red background */
+        color: #ffffff;            /* White text */
+        border-color: #e74c3c;     /* Matching border */
     }
     .mobileMenu .responsivemenu .auth-buttons-container .btn-logout:hover {
-        background-color: #c0392b;
-        color: #fff;
+        background-color: #c0392b;  /* Darker red on hover */
+        border-color: #c0392b;
     }
 `;
 
-// --- Main Menu Items ---
 const menus = [
   { id: 1, title: "Home", link: "/home" },
   { id: 2, title: "About", link: "/about" },
@@ -185,7 +187,6 @@ const menus = [
   { id: 88, title: "Contact", link: "/contact" },
 ];
 
-// --- Authentication Menu Items ---
 const authMenus = [
   { id: 991, title: "Login", link: "/login", className: "btn-login" },
   { id: 992, title: "Sign Up", link: "/register", className: "btn-signup" },
@@ -234,38 +235,9 @@ export default class MobileMenu extends Component {
           <ul className="responsivemenu">
             {menus.map((item) => (
               <li key={item.id}>
-                {item.submenu ? (
-                  <p onClick={this.setIsOpen(item.id)}>
-                    {item.title}
-                    <i className="fa fa-angle-right" aria-hidden="true"></i>
-                  </p>
-                ) : (
-                  <Link onClick={this.ClickHandler} to={item.link}>
-                    {item.title}
-                  </Link>
-                )}
-                {item.submenu ? (
-                  <Collapse isOpen={item.id === isOpen}>
-                    <Card>
-                      <CardBody>
-                        <ul>
-                          {item.submenu.map((submenu) => (
-                            <li key={submenu.id}>
-                              <Link
-                                onClick={this.ClickHandler}
-                                to={submenu.link}
-                              >
-                                {submenu.title}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardBody>
-                    </Card>
-                  </Collapse>
-                ) : (
-                  ""
-                )}
+                <Link onClick={this.ClickHandler} to={item.link}>
+                  {item.title}
+                </Link>
               </li>
             ))}
 
