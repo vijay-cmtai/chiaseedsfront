@@ -1,4 +1,4 @@
-// src/pages/admin/ManageUsersPage.js (Final Corrected Code)
+// src/pages/admin/ManageUsersPage.js (Mobile Responsive Version)
 
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -32,6 +32,10 @@ import {
   Grid,
   Button,
   CircularProgress,
+  useMediaQuery,
+  useTheme,
+  CardContent,
+  Divider,
 } from "@material-ui/core";
 import EditIcon from "@material-ui/icons/Edit";
 import BlockIcon from "@material-ui/icons/Block"; // Delete ke liye
@@ -53,30 +57,58 @@ const colors = {
 };
 
 const useStyles = makeStyles((theme) => ({
-  pageContainer: { padding: theme.spacing(3) },
+  pageContainer: { 
+    padding: theme.spacing(3),
+    [theme.breakpoints.down('sm')]: {
+      padding: theme.spacing(2, 1),
+    },
+  },
   headerContainer: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: theme.spacing(4),
+    [theme.breakpoints.down('sm')]: {
+      marginBottom: theme.spacing(2),
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      gap: theme.spacing(2),
+    },
   },
-  pageTitle: { fontWeight: "bold", color: colors.textDark },
+  pageTitle: { 
+    fontWeight: "bold", 
+    color: colors.textDark,
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '1.5rem',
+    },
+  },
   buttonPrimary: {
     backgroundColor: colors.primary,
     color: "#fff",
     padding: "6px 16px",
     textTransform: "none",
     "&:hover": { backgroundColor: "#6c749d" },
+    [theme.breakpoints.down('sm')]: {
+      padding: "8px 12px",
+      fontSize: '0.85rem',
+    },
   },
   contentCard: {
     borderRadius: "12px",
     boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
     backgroundColor: colors.cardBg,
     "& .MuiCardContent-root:last-child": { paddingBottom: 0 },
+    [theme.breakpoints.down('sm')]: {
+      borderRadius: "8px",
+      margin: theme.spacing(0, 0.5),
+    },
   },
   toolbar: {
     padding: theme.spacing(2, 3),
     borderBottom: `1px solid ${colors.borderColor}`,
+    [theme.breakpoints.down('sm')]: {
+      padding: theme.spacing(1.5, 2),
+    },
   },
   tableHead: {
     backgroundColor: colors.lightBg,
@@ -84,27 +116,127 @@ const useStyles = makeStyles((theme) => ({
       fontWeight: "bold",
       color: colors.textDark,
       borderBottom: "none",
+      [theme.breakpoints.down('sm')]: {
+        fontSize: '0.75rem',
+        padding: theme.spacing(1),
+      },
     },
   },
   tableRow: {
-    "& .MuiTableCell-root": { borderBottom: `1px solid ${colors.borderColor}` },
+    "& .MuiTableCell-root": { 
+      borderBottom: `1px solid ${colors.borderColor}`,
+      [theme.breakpoints.down('sm')]: {
+        padding: theme.spacing(1),
+      },
+    },
     "&:last-child .MuiTableCell-root": { borderBottom: "none" },
     "&:hover": { backgroundColor: "#f5f5f5" },
   },
-  userCell: { display: "flex", alignItems: "center" },
-  avatar: { marginRight: theme.spacing(2) },
-  userName: { fontWeight: 500, color: colors.textDark },
-  userEmail: { color: colors.textMuted, fontSize: "0.8rem" },
-  chip: { borderRadius: "16px", fontWeight: "bold", height: "26px" },
+  userCell: { 
+    display: "flex", 
+    alignItems: "center",
+    [theme.breakpoints.down('sm')]: {
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      gap: theme.spacing(0.5),
+    },
+  },
+  avatar: { 
+    marginRight: theme.spacing(2),
+    [theme.breakpoints.down('sm')]: {
+      marginRight: theme.spacing(1),
+      width: theme.spacing(4),
+      height: theme.spacing(4),
+    },
+  },
+  userName: { 
+    fontWeight: 500, 
+    color: colors.textDark,
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '0.85rem',
+    },
+  },
+  userEmail: { 
+    color: colors.textMuted, 
+    fontSize: "0.8rem",
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '0.7rem',
+    },
+  },
+  chip: { 
+    borderRadius: "16px", 
+    fontWeight: "bold", 
+    height: "26px",
+    [theme.breakpoints.down('sm')]: {
+      height: "22px",
+      fontSize: '0.7rem',
+    },
+  },
   roleAdmin: { backgroundColor: colors.primary, color: "white" },
   roleUser: { backgroundColor: colors.lightGray, color: colors.textMuted },
   statusActive: { backgroundColor: colors.lightGreen, color: colors.green }, // 'isVerified' true ke liye
   statusNotVerified: { backgroundColor: colors.lightRed, color: colors.red }, // 'isVerified' false ke liye
+  
+  // Mobile Card View
+  mobileUserCard: {
+    marginBottom: theme.spacing(2),
+    padding: theme.spacing(2),
+    borderRadius: "8px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+    backgroundColor: colors.cardBg,
+  },
+  mobileUserHeader: {
+    display: "flex",
+    alignItems: "center",
+    marginBottom: theme.spacing(1),
+  },
+  mobileUserInfo: {
+    flex: 1,
+    marginLeft: theme.spacing(1),
+  },
+  mobileUserActions: {
+    display: "flex",
+    gap: theme.spacing(1),
+  },
+  mobileUserMeta: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: theme.spacing(1),
+  },
+  mobileChips: {
+    display: "flex",
+    gap: theme.spacing(1),
+    flexWrap: "wrap",
+  },
+  
+  // Hidden classes for responsive design
+  hideOnMobile: {
+    [theme.breakpoints.down('sm')]: {
+      display: 'none',
+    },
+  },
+  showOnMobile: {
+    display: 'none',
+    [theme.breakpoints.down('sm')]: {
+      display: 'block',
+    },
+  },
+  
+  // Dialog responsive styles
+  dialogPaper: {
+    [theme.breakpoints.down('sm')]: {
+      margin: theme.spacing(2),
+      maxHeight: 'calc(100vh - 32px)',
+    },
+  },
 }));
 
 const ManageUsersPage = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const { users = [], status } = useSelector((state) => state.admin || {});
   // Debug: log users from Redux
@@ -114,6 +246,7 @@ const ManageUsersPage = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({ name: "" });
   const [searchTerm, setSearchTerm] = useState("");
+  
   useEffect(() => {
     dispatch(getAllUsers());
   }, [dispatch]);
@@ -160,6 +293,52 @@ const ManageUsersPage = () => {
     }
   };
 
+  // Mobile Card Component
+  const MobileUserCard = ({ user }) => (
+    <Card className={classes.mobileUserCard}>
+      <div className={classes.mobileUserHeader}>
+        <Avatar src={user.avatar} className={classes.avatar}>
+          {user.name.charAt(0)}
+        </Avatar>
+        <div className={classes.mobileUserInfo}>
+          <Typography variant="body1" className={classes.userName}>
+            {user.name}
+          </Typography>
+          <Typography variant="body2" className={classes.userEmail}>
+            {user.email}
+          </Typography>
+        </div>
+        <div className={classes.mobileUserActions}>
+          <IconButton
+            size="small"
+            onClick={() => handleOpenEditDialog(user)}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            style={{ color: colors.red }}
+            onClick={() => handleDeleteUser(user._id)}
+          >
+            <BlockIcon fontSize="small" />
+          </IconButton>
+        </div>
+      </div>
+      <div className={classes.mobileUserMeta}>
+        <div className={classes.mobileChips}>
+          <Chip
+            label={user.role}
+            className={`${classes.chip} ${user.role === "admin" ? classes.roleAdmin : classes.roleUser}`}
+          />
+          <Chip
+            label={user.isVerified ? "Verified" : "Not Verified"}
+            className={`${classes.chip} ${user.isVerified ? classes.statusActive : classes.statusNotVerified}`}
+          />
+        </div>
+      </div>
+    </Card>
+  );
+
   return (
     <div className={classes.pageContainer}>
       <Box className={classes.headerContainer}>
@@ -168,6 +347,7 @@ const ManageUsersPage = () => {
         </Typography>
         {/* Add User button hata diya gaya hai */}
       </Box>
+      
       <Card className={classes.contentCard}>
         <Box className={classes.toolbar}>
           <TextField
@@ -186,86 +366,109 @@ const ManageUsersPage = () => {
             }}
           />
         </Box>
-        <TableContainer>
-          <Table>
-            <TableHead className={classes.tableHead}>
-              <TableRow>
-                <TableCell>User</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="center">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {status === "loading" && users.length === 0 ? (
+        
+        {/* Desktop Table View */}
+        <div className={classes.hideOnMobile}>
+          <TableContainer>
+            <Table>
+              <TableHead className={classes.tableHead}>
                 <TableRow>
-                  <TableCell colSpan={4} align="center">
-                    <CircularProgress />
-                  </TableCell>
+                  <TableCell>User</TableCell>
+                  <TableCell>Role</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="center">Actions</TableCell>
                 </TableRow>
-              ) : filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
-                  <TableRow key={user._id} className={classes.tableRow}>
-                    <TableCell>
-                      <Box className={classes.userCell}>
-                        <Avatar src={user.avatar} className={classes.avatar}>
-                          {user.name.charAt(0)}
-                        </Avatar>
-                        <Box>
-                          <Typography
-                            variant="body1"
-                            className={classes.userName}
-                          >
-                            {user.name}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            className={classes.userEmail}
-                          >
-                            {user.email}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={user.role}
-                        className={`${classes.chip} ${user.role === "admin" ? classes.roleAdmin : classes.roleUser}`}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={user.isVerified ? "Verified" : "Not Verified"}
-                        className={`${classes.chip} ${user.isVerified ? classes.statusActive : classes.statusNotVerified}`}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenEditDialog(user)}
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        style={{ color: colors.red }}
-                        onClick={() => handleDeleteUser(user._id)}
-                      >
-                        <BlockIcon fontSize="small" />
-                      </IconButton>
+              </TableHead>
+              <TableBody>
+                {status === "loading" && users.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      <CircularProgress />
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} align="center">
-                    <Typography>No users found.</Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                ) : filteredUsers.length > 0 ? (
+                  filteredUsers.map((user) => (
+                    <TableRow key={user._id} className={classes.tableRow}>
+                      <TableCell>
+                        <Box className={classes.userCell}>
+                          <Avatar src={user.avatar} className={classes.avatar}>
+                            {user.name.charAt(0)}
+                          </Avatar>
+                          <Box>
+                            <Typography
+                              variant="body1"
+                              className={classes.userName}
+                            >
+                              {user.name}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              className={classes.userEmail}
+                            >
+                              {user.email}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={user.role}
+                          className={`${classes.chip} ${user.role === "admin" ? classes.roleAdmin : classes.roleUser}`}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={user.isVerified ? "Verified" : "Not Verified"}
+                          className={`${classes.chip} ${user.isVerified ? classes.statusActive : classes.statusNotVerified}`}
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenEditDialog(user)}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          style={{ color: colors.red }}
+                          onClick={() => handleDeleteUser(user._id)}
+                        >
+                          <BlockIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      <Typography>No users found.</Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
+        
+        {/* Mobile Card View */}
+        <div className={classes.showOnMobile}>
+          <CardContent>
+            {status === "loading" && users.length === 0 ? (
+              <Box display="flex" justifyContent="center" p={3}>
+                <CircularProgress />
+              </Box>
+            ) : filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => (
+                <MobileUserCard key={user._id} user={user} />
+              ))
+            ) : (
+              <Box textAlign="center" p={3}>
+                <Typography>No users found.</Typography>
+              </Box>
+            )}
+          </CardContent>
+        </div>
       </Card>
 
       {/* Edit User Dialog */}
@@ -275,6 +478,8 @@ const ManageUsersPage = () => {
         aria-labelledby="form-dialog-title"
         fullWidth
         maxWidth="xs"
+        classes={{ paper: classes.dialogPaper }}
+        fullScreen={isMobile}
       >
         <DialogTitle id="form-dialog-title">Edit User</DialogTitle>
         <DialogContent>
