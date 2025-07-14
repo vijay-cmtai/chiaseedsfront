@@ -4,8 +4,6 @@ import Logo from "../../images/logo.png";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import MobileMenu from "../../components/MobileMenu";
 import { logout } from "../../features/auth/authSlice";
-
-// Profile data fetch karne ke liye action import karein
 import { getMyProfile } from "../../features/user/userSlice";
 
 // --- Styles ---
@@ -21,9 +19,20 @@ const colors = {
 };
 
 const headerStyles = `
-    header#header.site-header { background-color: ${colors.headerBg} !important; border-bottom: 1px solid ${colors.borderColor} !important; position: relative; z-index: 100; } 
-    #header .navigation-holder .navbar-nav { z-index: 10; position: relative; }
-    #header .navigation-holder .navbar-nav > li { position: relative; z-index: 10; }
+    header#header.site-header { 
+      background-color: ${colors.headerBg} !important; 
+      border-bottom: 1px solid ${colors.borderColor} !important; 
+      position: relative; /* Aapke request ke anusaar, isse nahi badla gaya hai */
+      z-index: 100; 
+    } 
+
+    /* === FIX: Link ko clickable banane ke liye CSS === */
+    #header .navigation-holder .navbar-nav > li { 
+      /* FIX: Isse add kiya gaya hai taaki z-index theek se kaam kare */
+      position: relative; 
+      z-index: 10;
+    }
+    
     #header .navigation-holder .navbar-nav > li > a { 
       color: ${colors.accent1} !important; 
       font-weight: 500 !important; 
@@ -31,10 +40,14 @@ const headerStyles = `
       display: block !important;
       text-decoration: none !important;
       position: relative !important;
-      z-index: 10 !important;
-      cursor: pointer !important;
-      pointer-events: auto !important;
+      
+      /* FIX: z-index badha diya gaya hai taaki yeh hamesha upar rahe */
+      z-index: 11;
+      
+      /* pointer-events aur cursor ki zaroorat nahi hai, kyonki <a> tag me yeh default hota hai */
     } 
+    /* === End of Fix === */
+
     #header .navigation-holder .navbar-nav > li > a:hover, 
     #header .navigation-holder .navbar-nav > li > a.active { 
       color: ${colors.primary} !important; 
@@ -57,16 +70,9 @@ const headerStyles = `
     #header .profile-dropdown ul { list-style: none; padding: 10px 0; margin: 0; } 
     #header .profile-dropdown ul li a, #header .profile-dropdown ul li button { display: block; width: 100%; padding: 10px 20px; color: ${colors.accent1}; text-decoration: none; background: none; border: none; text-align: left; font-size: 15px; cursor: pointer; transition: background-color 0.2s ease; } 
     #header .profile-dropdown ul li a:hover, #header .profile-dropdown ul li button:hover { background-color: ${colors.dropdownBg}; }
-    
-    /* Mobile menu button alignment */
     #header .mobile-menu-wrapper { margin-left: 5px; flex-shrink: 0; }
-    
-    /* Force all icons to right edge */
     #header .col-lg-3:last-child { padding-right: 15px; }
-    
-    /* Navigation fixes */
-    #header .navigation-holder { position: relative; z-index: 10; }
-    #header .collapse.navbar-collapse { z-index: 10; }
+    #header .navigation-holder { position: relative; } /* Isse z-index ke liye rehne diya hai */
     
     @media (max-width: 991px) {
       #header .header-right {
@@ -76,12 +82,7 @@ const headerStyles = `
         padding-right: 0;
       }
       #header .col-lg-3:last-child { padding-right: 10px; }
-      #header .header-right .profile-toggle-btn {
-        width: 35px;
-        height: 35px;
-        line-height: 35px;
-        font-size: 14px;
-      }
+      #header .header-right .profile-toggle-btn,
       #header .header-right .cart-toggle-btn,
       #header .header-right .wishlist-toggle-btn {
         width: 35px;
@@ -176,45 +177,45 @@ class Header extends Component {
                   >
                     <ul className="nav navbar-nav me-auto mb-2 mb-lg-0">
                       <li className="nav-item">
-                        <NavLink 
-                          className="nav-link" 
-                          onClick={ClickHandler} 
+                        <NavLink
+                          className="nav-link"
+                          onClick={ClickHandler}
                           to="/"
                         >
                           Home
                         </NavLink>
                       </li>
                       <li className="nav-item">
-                        <NavLink 
-                          className="nav-link" 
-                          onClick={ClickHandler} 
+                        <NavLink
+                          className="nav-link"
+                          onClick={ClickHandler}
                           to="/about"
                         >
                           About
                         </NavLink>
                       </li>
                       <li className="nav-item">
-                        <NavLink 
-                          className="nav-link" 
-                          onClick={ClickHandler} 
+                        <NavLink
+                          className="nav-link"
+                          onClick={ClickHandler}
                           to="/shop"
                         >
                           Shop
                         </NavLink>
                       </li>
                       <li className="nav-item">
-                        <NavLink 
-                          className="nav-link" 
-                          onClick={ClickHandler} 
+                        <NavLink
+                          className="nav-link"
+                          onClick={ClickHandler}
                           to="/blog"
                         >
                           Blog
                         </NavLink>
                       </li>
                       <li className="nav-item">
-                        <NavLink 
-                          className="nav-link" 
-                          onClick={ClickHandler} 
+                        <NavLink
+                          className="nav-link"
+                          onClick={ClickHandler}
                           to="/contact"
                         >
                           Contact
