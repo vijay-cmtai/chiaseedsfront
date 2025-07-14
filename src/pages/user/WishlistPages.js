@@ -1,10 +1,8 @@
-// src/pages/user/WishlistPage.js (FINAL CORRECTED CODE)
-
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
+import toast from 'react-hot-toast';
 
-// --- Material-UI Imports ---
 import {
   Box,
   Typography,
@@ -20,14 +18,12 @@ import {
 import DeleteIcon from "@material-ui/icons/Delete";
 import ShoppingCartIcon from "@material-ui/icons/ShoppingCart";
 
-// --- Correct Redux Toolkit Thunks ---
 import {
   getWishlist,
   removeFromWishlist,
   addToCart,
 } from "../../features/user/userSlice";
 
-// --- Styles ---
 const colors = {
   primary: "#a96e4f",
   primaryHover: "#8e5a3e",
@@ -114,20 +110,21 @@ const WishlistPage = () => {
     dispatch(getWishlist());
   }, [dispatch]);
 
-  const handleRemoveFromWishlist = (productId) => {
-    if (
-      window.confirm(
-        "Are you sure you want to remove this item from your wishlist?"
-      )
-    ) {
+  const handleRemoveFromWishlist = (productId, productName) => {
+    if (window.confirm(`Are you sure you want to remove ${productName}?`)) {
       dispatch(removeFromWishlist(productId));
+      toast.success(`${productName} removed from wishlist.`);
     }
   };
 
   const handleMoveToCart = (product) => {
-    dispatch(addToCart({ productId: product._id, quantity: 1 }));
-    dispatch(removeFromWishlist(product._id));
-    alert(`${product.name} has been moved to your cart.`);
+    try {
+      dispatch(addToCart({ productId: product._id, quantity: 1 }));
+      dispatch(removeFromWishlist(product._id));
+      toast.success(`${product.name} moved to your cart!`);
+    } catch (error) {
+      toast.error("Could not move item to cart.");
+    }
   };
 
   if (status === "loading" && (!wishlist || wishlist.length === 0)) {
@@ -153,8 +150,6 @@ const WishlistPage = () => {
                   className={classes.cardMedia}
                   component="img"
                   alt={product.name}
-                  // === THE FIX IS HERE ===
-                  // This robust check will prevent crashes and show an image if possible
                   image={
                     product.mainImage ||
                     (product.images && product.images[0]) ||
@@ -182,7 +177,7 @@ const WishlistPage = () => {
                   </Button>
                   <IconButton
                     size="small"
-                    onClick={() => handleRemoveFromWishlist(product._id)}
+                    onClick={() => handleRemoveFromWishlist(product._id, product.name)}
                     style={{ color: colors.red }}
                     title="Remove from Wishlist"
                   >
