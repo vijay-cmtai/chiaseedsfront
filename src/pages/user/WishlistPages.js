@@ -1,8 +1,9 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
-import toast from 'react-hot-toast';
+// import toast from 'react-hot-toast'; // The toast import has been removed.
 
+// --- Material-UI Imports ---
 import {
   Box,
   Typography,
@@ -18,12 +19,14 @@ import {
 import DeleteIcon from "@material-ui/icons/Delete";
 import ShoppingCartIcon from "@material-ui/icons/ShoppingCart";
 
+// --- Redux Toolkit Thunks ---
 import {
   getWishlist,
   removeFromWishlist,
   addToCart,
 } from "../../features/user/userSlice";
 
+// --- Styles ---
 const colors = {
   primary: "#a96e4f",
   primaryHover: "#8e5a3e",
@@ -113,7 +116,8 @@ const WishlistPage = () => {
   const handleRemoveFromWishlist = (productId, productName) => {
     if (window.confirm(`Are you sure you want to remove ${productName}?`)) {
       dispatch(removeFromWishlist(productId));
-      toast.success(`${productName} removed from wishlist.`);
+      // You can add an alert for removal as well if you like
+      alert(`${productName} has been removed from your wishlist.`);
     }
   };
 
@@ -121,9 +125,11 @@ const WishlistPage = () => {
     try {
       dispatch(addToCart({ productId: product._id, quantity: 1 }));
       dispatch(removeFromWishlist(product._id));
-      toast.success(`${product.name} moved to your cart!`);
+      // Replaced toast.success with the standard browser alert
+      alert(`${product.name} has been moved to your cart!`);
     } catch (error) {
-      toast.error("Could not move item to cart.");
+      // Replaced toast.error with the standard browser alert
+      alert("Could not move item to cart.");
     }
   };
 
