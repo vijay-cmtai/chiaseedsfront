@@ -1,9 +1,11 @@
 import React, { Component, createRef } from "react";
 import { connect } from "react-redux";
-import Logo from "../../images/logo.png";
+import Logo from "../../images/logo.png"; // Make sure this path is correct
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import MobileMenu from "../../components/MobileMenu";
 import { logout } from "../../features/auth/authSlice";
+
+// Profile data fetch karne ke liye action import karein
 import { getMyProfile } from "../../features/user/userSlice";
 
 // --- Styles ---
@@ -19,60 +21,208 @@ const colors = {
 };
 
 const headerStyles = `
+    /* --- FIX #2: NAVBAR KO FIXED KARNE KE LIYE CSS CHANGES --- */
     header#header.site-header { 
-      background-color: ${colors.headerBg} !important; 
-      border-bottom: 1px solid ${colors.borderColor} !important; 
-      position: relative; /* Aapke request ke anusaar, isse nahi badla gaya hai */
-      z-index: 100; 
+        background-color: ${colors.headerBg} !important; 
+        border-bottom: 1px solid ${colors.borderColor} !important; 
+        position: fixed;      /* Pehle 'relative' tha, ab 'fixed' hai */
+        top: 0;               /* Top se chipkaane ke liye */
+        left: 0;              /* Full width ke liye */
+        right: 0;             /* Full width ke liye */
+        z-index: 100;         /* Sabse upar rakhne ke liye */
     } 
 
-    /* === FIX: Link ko clickable banane ke liye CSS === */
-    #header .navigation-holder .navbar-nav > li { 
-      /* FIX: Isse add kiya gaya hai taaki z-index theek se kaam kare */
-      position: relative; 
-      z-index: 10;
-    }
-    
     #header .navigation-holder .navbar-nav > li > a { 
       color: ${colors.accent1} !important; 
       font-weight: 500 !important; 
-      padding: 10px 15px !important;
-      display: block !important;
-      text-decoration: none !important;
       position: relative !important;
-      
-      /* FIX: z-index badha diya gaya hai taaki yeh hamesha upar rahe */
-      z-index: 11;
-      
-      /* pointer-events aur cursor ki zaroorat nahi hai, kyonki <a> tag me yeh default hota hai */
+      z-index: 99 !important; /* Ensure links are clickable */
     } 
-    /* === End of Fix === */
 
     #header .navigation-holder .navbar-nav > li > a:hover, 
     #header .navigation-holder .navbar-nav > li > a.active { 
       color: ${colors.primary} !important; 
     } 
-    #header .header-right { gap: 5px; display: flex; align-items: center; justify-content: flex-end; width: 100%; padding-right: 0; margin-left: auto; } 
-    #header .header-right .profile-toggle-btn, #header .header-right .cart-toggle-btn, #header .header-right .wishlist-toggle-btn { color: ${colors.accent1} !important; background: #f8f5f0; border-radius: 50%; width: 40px; height: 40px; line-height: 40px; text-align: center; cursor: pointer; border: none; padding: 0; position: relative; margin: 0; flex-shrink: 0; } 
-    #header .header-right .cart-count { position: absolute; top: -2px; right: -2px; background-color: ${colors.primary}; color: ${colors.textLight}; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; line-height: 1; }
-    #header .auth-buttons { display: flex; align-items: center; gap: 8px; margin-left: 0; flex-shrink: 0; } 
-    #header .auth-buttons .btn { padding: 8px 20px !important; border-radius: 8px !important; font-weight: 600 !important; font-size: 15px !important; text-decoration: none !important; transition: all 0.3s ease !important; line-height: 1.5 !important; border: 2px solid transparent !important; } 
-    #header .auth-buttons .btn-login { border-color: ${colors.primary} !important; color: ${colors.primary} !important; background-color: transparent !important; } 
-    #header .auth-buttons .btn-login:hover { background-color: ${colors.primary} !important; color: ${colors.textLight} !important; } 
-    #header .auth-buttons .btn-signup { background-color: ${colors.primary} !important; color: ${colors.textLight} !important; border-color: ${colors.primary} !important; } 
-    #header .auth-buttons .btn-signup:hover { background-color: ${colors.primaryHover} !important; border-color: ${colors.primaryHover} !important; }
-    #header .profile-dropdown-wrapper { position: relative; }
-    #header .profile-dropdown { position: absolute; top: 50px; right: 0; width: 220px; background: #ffffff; border: 1px solid ${colors.borderColor}; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 0; z-index: 999; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.2s ease; } 
-    #header .profile-dropdown.show { opacity: 1; visibility: visible; transform: translateY(0); } 
-    #header .profile-dropdown .user-info { padding: 15px 20px; border-bottom: 1px solid ${colors.borderColor}; } 
-    #header .profile-dropdown .user-info h6 { margin: 0 0 4px 0; font-weight: 600; color: ${colors.accent1}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } 
-    #header .profile-dropdown .user-info span { font-size: 13px; color: ${colors.textMuted}; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } 
-    #header .profile-dropdown ul { list-style: none; padding: 10px 0; margin: 0; } 
-    #header .profile-dropdown ul li a, #header .profile-dropdown ul li button { display: block; width: 100%; padding: 10px 20px; color: ${colors.accent1}; text-decoration: none; background: none; border: none; text-align: left; font-size: 15px; cursor: pointer; transition: background-color 0.2s ease; } 
-    #header .profile-dropdown ul li a:hover, #header .profile-dropdown ul li button:hover { background-color: ${colors.dropdownBg}; }
-    #header .mobile-menu-wrapper { margin-left: 5px; flex-shrink: 0; }
-    #header .col-lg-3:last-child { padding-right: 15px; }
-    #header .navigation-holder { position: relative; } /* Isse z-index ke liye rehne diya hai */
+
+    #header .header-right { 
+        gap: 5px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: flex-end; 
+        width: 100%; 
+        padding-right: 0; 
+        margin-left: auto; 
+    } 
+
+    #header .header-right .profile-toggle-btn, 
+    #header .header-right .cart-toggle-btn, 
+    #header .header-right .wishlist-toggle-btn { 
+        color: ${colors.accent1} !important; 
+        background: #f8f5f0; 
+        border-radius: 50%; 
+        width: 40px; 
+        height: 40px; 
+        line-height: 40px; 
+        text-align: center; 
+        cursor: pointer; 
+        border: none; 
+        padding: 0; 
+        position: relative; 
+        margin: 0; 
+        flex-shrink: 0; 
+    } 
+
+    #header .header-right .cart-count { 
+        position: absolute; 
+        top: -2px; 
+        right: -2px; 
+        background-color: ${colors.primary}; 
+        color: ${colors.textLight}; 
+        border-radius: 50%; 
+        width: 18px; 
+        height: 18px; 
+        font-size: 10px; 
+        font-weight: bold; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        line-height: 1; 
+    }
+
+    #header .auth-buttons { 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        margin-left: 0; 
+        flex-shrink: 0; 
+    } 
+
+    #header .auth-buttons .btn { 
+        padding: 8px 20px !important; 
+        border-radius: 8px !important; 
+        font-weight: 600 !important; 
+        font-size: 15px !important; 
+        text-decoration: none !important; 
+        transition: all 0.3s ease !important; 
+        line-height: 1.5 !important; 
+        border: 2px solid transparent !important; 
+    } 
+
+    #header .auth-buttons .btn-login { 
+        border-color: ${colors.primary} !important; 
+        color: ${colors.primary} !important; 
+        background-color: transparent !important; 
+    } 
+
+    #header .auth-buttons .btn-login:hover { 
+        background-color: ${colors.primary} !important; 
+        color: ${colors.textLight} !important; 
+    } 
+
+    #header .auth-buttons .btn-signup { 
+        background-color: ${colors.primary} !important; 
+        color: ${colors.textLight} !important; 
+        border-color: ${colors.primary} !important; 
+    } 
+    
+    #header .auth-buttons .btn-signup:hover { 
+        background-color: ${colors.primaryHover} !important; 
+        border-color: ${colors.primaryHover} !important; 
+    }
+
+    #header .profile-dropdown-wrapper { 
+        position: relative; 
+    }
+
+    #header .profile-dropdown { 
+        position: absolute; 
+        top: 50px; 
+        right: 0; 
+        width: 220px; 
+        background: #ffffff; 
+        border: 1px solid ${colors.borderColor}; 
+        border-radius: 8px; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+        padding: 0; 
+        z-index: 999; 
+        opacity: 0; 
+        visibility: hidden; 
+        transform: translateY(10px); 
+        transition: all 0.2s ease; 
+    } 
+
+    #header .profile-dropdown.show { 
+        opacity: 1; 
+        visibility: visible; 
+        transform: translateY(0); 
+    } 
+
+    #header .profile-dropdown .user-info { 
+        padding: 15px 20px; 
+        border-bottom: 1px solid ${colors.borderColor}; 
+    } 
+
+    #header .profile-dropdown .user-info h6 { 
+        margin: 0 0 4px 0; 
+        font-weight: 600; 
+        color: ${colors.accent1}; 
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+    } 
+
+    #header .profile-dropdown .user-info span { 
+        font-size: 13px; 
+        color: ${colors.textMuted}; 
+        display: block; 
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+    } 
+
+    #header .profile-dropdown ul { 
+        list-style: none; 
+        padding: 10px 0; 
+        margin: 0; 
+    } 
+
+    #header .profile-dropdown ul li a, 
+    #header .profile-dropdown ul li button { 
+        display: block; 
+        width: 100%; 
+        padding: 10px 20px; 
+        color: ${colors.accent1}; 
+        text-decoration: none; 
+        background: none; 
+        border: none; 
+        text-align: left; 
+        font-size: 15px; 
+        cursor: pointer; 
+        transition: background-color 0.2s ease; 
+    } 
+
+    #header .profile-dropdown ul li a:hover, 
+    #header .profile-dropdown ul li button:hover { 
+        background-color: ${colors.dropdownBg}; 
+    }
+    
+    #header .mobile-menu-wrapper { 
+        margin-left: 5px; 
+        flex-shrink: 0; 
+    }
+    
+    #header .col-lg-3:last-child { 
+        padding-right: 15px; 
+    }
+    
+    #header .navigation-holder { 
+        position: relative; 
+        z-index: 10; 
+    }
+    
+    #header .collapse.navbar-collapse { 
+        z-index: 10; 
+    }
     
     @media (max-width: 991px) {
       #header .header-right {
@@ -81,7 +231,9 @@ const headerStyles = `
         width: 100%;
         padding-right: 0;
       }
-      #header .col-lg-3:last-child { padding-right: 10px; }
+      #header .col-lg-3:last-child { 
+          padding-right: 10px; 
+      }
       #header .header-right .profile-toggle-btn,
       #header .header-right .cart-toggle-btn,
       #header .header-right .wishlist-toggle-btn {
@@ -103,6 +255,14 @@ const headerStyles = `
       #header .mobile-menu-wrapper {
         margin-left: 3px;
         flex-shrink: 0;
+      }
+      
+      #header .navbar-brand .logo-img {
+          height: 60px !important; /* Adjust logo height on mobile */
+      }
+      #header .navigation.navbar {
+          padding-top: 5px !important;
+          padding-bottom: 5px !important;
       }
     }
 `;
@@ -155,7 +315,7 @@ class Header extends Component {
           <nav className="navigation navbar navbar-expand-lg">
             <div className="container">
               <div className="row align-items-center w-100">
-                <div className="col-lg-3">
+                <div className="col-lg-3 col-md-4 col-sm-6 col-6">
                   <div className="navbar-header">
                     <Link
                       onClick={ClickHandler}
@@ -166,65 +326,49 @@ class Header extends Component {
                         src={Logo}
                         alt="icon"
                         style={{ height: "80px", width: "auto" }}
+                        className="logo-img"
                       />
                     </Link>
                   </div>
                 </div>
-                <div className="col-lg-6">
+
+                {/* --- FIX #1: NAVIGATION LINKS KO UNCOMMENT KIYA GAYA HAI --- */}
+                <div className="col-lg-6 d-none d-lg-block">
                   <div
                     id="navbar"
                     className="collapse navbar-collapse navigation-holder"
                   >
                     <ul className="nav navbar-nav me-auto mb-2 mb-lg-0">
-                      <li className="nav-item">
-                        <NavLink
-                          className="nav-link"
-                          onClick={ClickHandler}
-                          to="/"
-                        >
+                      <li>
+                        <NavLink onClick={ClickHandler} to="/">
                           Home
                         </NavLink>
                       </li>
-                      <li className="nav-item">
-                        <NavLink
-                          className="nav-link"
-                          onClick={ClickHandler}
-                          to="/about"
-                        >
+                      <li>
+                        <NavLink onClick={ClickHandler} to="/about">
                           About
                         </NavLink>
                       </li>
-                      <li className="nav-item">
-                        <NavLink
-                          className="nav-link"
-                          onClick={ClickHandler}
-                          to="/shop"
-                        >
+                      <li>
+                        <NavLink onClick={ClickHandler} to="/shop">
                           Shop
                         </NavLink>
                       </li>
-                      <li className="nav-item">
-                        <NavLink
-                          className="nav-link"
-                          onClick={ClickHandler}
-                          to="/blog"
-                        >
+                      <li>
+                        <NavLink onClick={ClickHandler} to="/blog">
                           Blog
                         </NavLink>
                       </li>
-                      <li className="nav-item">
-                        <NavLink
-                          className="nav-link"
-                          onClick={ClickHandler}
-                          to="/contact"
-                        >
+                      <li>
+                        <NavLink onClick={ClickHandler} to="/contact">
                           Contact
                         </NavLink>
                       </li>
                     </ul>
                   </div>
                 </div>
-                <div className="col-lg-3">
+
+                <div className="col-lg-3 col-md-8 col-sm-6 col-6">
                   <div className="header-right">
                     {isAuthenticated ? (
                       <>
@@ -270,7 +414,9 @@ class Header extends Component {
                             <i className="fi flaticon-user"></i>
                           </button>
                           <div
-                            className={`profile-dropdown ${isProfileShow ? "show" : ""}`}
+                            className={`profile-dropdown ${
+                              isProfileShow ? "show" : ""
+                            }`}
                           >
                             <div className="user-info">
                               <h6>{displayUser?.name || "Guest User"}</h6>
