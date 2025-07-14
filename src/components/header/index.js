@@ -21,13 +21,28 @@ const colors = {
 };
 
 const headerStyles = `
-    header#header.site-header { background-color: ${colors.headerBg} !important; border-bottom: 1px solid ${colors.borderColor} !important; } 
-    #header .navigation-holder .navbar-nav > li > a { color: ${colors.accent1} !important; font-weight: 500 !important; } 
-    #header .navigation-holder .navbar-nav > li > a:hover, #header .navigation-holder .navbar-nav > li > a.active { color: ${colors.primary} !important; } 
-    #header .header-right { gap: 8px; display: flex; align-items: center; justify-content: flex-end; width: 100%; } 
-    #header .header-right .profile-toggle-btn, #header .header-right .cart-toggle-btn, #header .header-right .wishlist-toggle-btn { color: ${colors.accent1} !important; background: #f8f5f0; border-radius: 50%; width: 40px; height: 40px; line-height: 40px; text-align: center; cursor: pointer; border: none; padding: 0; position: relative; margin: 0; } 
+    header#header.site-header { background-color: ${colors.headerBg} !important; border-bottom: 1px solid ${colors.borderColor} !important; position: relative; z-index: 100; } 
+    #header .navigation-holder .navbar-nav { z-index: 10; position: relative; }
+    #header .navigation-holder .navbar-nav > li { position: relative; z-index: 10; }
+    #header .navigation-holder .navbar-nav > li > a { 
+      color: ${colors.accent1} !important; 
+      font-weight: 500 !important; 
+      padding: 10px 15px !important;
+      display: block !important;
+      text-decoration: none !important;
+      position: relative !important;
+      z-index: 10 !important;
+      cursor: pointer !important;
+      pointer-events: auto !important;
+    } 
+    #header .navigation-holder .navbar-nav > li > a:hover, 
+    #header .navigation-holder .navbar-nav > li > a.active { 
+      color: ${colors.primary} !important; 
+    } 
+    #header .header-right { gap: 5px; display: flex; align-items: center; justify-content: flex-end; width: 100%; padding-right: 0; margin-left: auto; } 
+    #header .header-right .profile-toggle-btn, #header .header-right .cart-toggle-btn, #header .header-right .wishlist-toggle-btn { color: ${colors.accent1} !important; background: #f8f5f0; border-radius: 50%; width: 40px; height: 40px; line-height: 40px; text-align: center; cursor: pointer; border: none; padding: 0; position: relative; margin: 0; flex-shrink: 0; } 
     #header .header-right .cart-count { position: absolute; top: -2px; right: -2px; background-color: ${colors.primary}; color: ${colors.textLight}; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; line-height: 1; }
-    #header .auth-buttons { display: flex; align-items: center; gap: 10px; margin-left: 0; } 
+    #header .auth-buttons { display: flex; align-items: center; gap: 8px; margin-left: 0; flex-shrink: 0; } 
     #header .auth-buttons .btn { padding: 8px 20px !important; border-radius: 8px !important; font-weight: 600 !important; font-size: 15px !important; text-decoration: none !important; transition: all 0.3s ease !important; line-height: 1.5 !important; border: 2px solid transparent !important; } 
     #header .auth-buttons .btn-login { border-color: ${colors.primary} !important; color: ${colors.primary} !important; background-color: transparent !important; } 
     #header .auth-buttons .btn-login:hover { background-color: ${colors.primary} !important; color: ${colors.textLight} !important; } 
@@ -44,14 +59,23 @@ const headerStyles = `
     #header .profile-dropdown ul li a:hover, #header .profile-dropdown ul li button:hover { background-color: ${colors.dropdownBg}; }
     
     /* Mobile menu button alignment */
-    #header .mobile-menu-wrapper { margin-left: 8px; }
+    #header .mobile-menu-wrapper { margin-left: 5px; flex-shrink: 0; }
+    
+    /* Force all icons to right edge */
+    #header .col-lg-3:last-child { padding-right: 15px; }
+    
+    /* Navigation fixes */
+    #header .navigation-holder { position: relative; z-index: 10; }
+    #header .collapse.navbar-collapse { z-index: 10; }
     
     @media (max-width: 991px) {
       #header .header-right {
-        gap: 5px;
+        gap: 3px;
         justify-content: flex-end;
         width: 100%;
+        padding-right: 0;
       }
+      #header .col-lg-3:last-child { padding-right: 10px; }
       #header .header-right .profile-toggle-btn {
         width: 35px;
         height: 35px;
@@ -76,7 +100,8 @@ const headerStyles = `
         transform: translateY(0);
       }
       #header .mobile-menu-wrapper {
-        margin-left: 5px;
+        margin-left: 3px;
+        flex-shrink: 0;
       }
     }
 `;
@@ -150,28 +175,48 @@ class Header extends Component {
                     className="collapse navbar-collapse navigation-holder"
                   >
                     <ul className="nav navbar-nav me-auto mb-2 mb-lg-0">
-                      <li>
-                        <NavLink onClick={ClickHandler} to="/">
+                      <li className="nav-item">
+                        <NavLink 
+                          className="nav-link" 
+                          onClick={ClickHandler} 
+                          to="/"
+                        >
                           Home
                         </NavLink>
                       </li>
-                      <li>
-                        <NavLink onClick={ClickHandler} to="/about">
+                      <li className="nav-item">
+                        <NavLink 
+                          className="nav-link" 
+                          onClick={ClickHandler} 
+                          to="/about"
+                        >
                           About
                         </NavLink>
                       </li>
-                      <li>
-                        <NavLink onClick={ClickHandler} to="/shop">
+                      <li className="nav-item">
+                        <NavLink 
+                          className="nav-link" 
+                          onClick={ClickHandler} 
+                          to="/shop"
+                        >
                           Shop
                         </NavLink>
                       </li>
-                      <li>
-                        <NavLink onClick={ClickHandler} to="/blog">
+                      <li className="nav-item">
+                        <NavLink 
+                          className="nav-link" 
+                          onClick={ClickHandler} 
+                          to="/blog"
+                        >
                           Blog
                         </NavLink>
                       </li>
-                      <li>
-                        <NavLink onClick={ClickHandler} to="/contact">
+                      <li className="nav-item">
+                        <NavLink 
+                          className="nav-link" 
+                          onClick={ClickHandler} 
+                          to="/contact"
+                        >
                           Contact
                         </NavLink>
                       </li>
