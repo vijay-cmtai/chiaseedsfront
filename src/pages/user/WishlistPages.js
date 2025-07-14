@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
-// import toast from 'react-hot-toast'; // The toast import has been removed.
 
 // --- Material-UI Imports ---
 import {
@@ -116,21 +115,19 @@ const WishlistPage = () => {
   const handleRemoveFromWishlist = (productId, productName) => {
     if (window.confirm(`Are you sure you want to remove ${productName}?`)) {
       dispatch(removeFromWishlist(productId));
-      // You can add an alert for removal as well if you like
-      alert(`${productName} has been removed from your wishlist.`);
+      // Maine yahan se bhi alert hata diya hai, agar aapko chahiye to ise uncomment kar sakte hain.
+      // alert(`${productName} has been removed from your wishlist.`);
     }
   };
 
+  // =======================================================
+  // === BADLAV YAHAN KIYA GAYA HAI ==========================
+  // =======================================================
+  // 'handleMoveToCart' function se alert() ko hata diya gaya hai.
   const handleMoveToCart = (product) => {
-    try {
-      dispatch(addToCart({ productId: product._id, quantity: 1 }));
-      dispatch(removeFromWishlist(product._id));
-      // Replaced toast.success with the standard browser alert
-      alert(`${product.name} has been moved to your cart!`);
-    } catch (error) {
-      // Replaced toast.error with the standard browser alert
-      alert("Could not move item to cart.");
-    }
+    dispatch(addToCart({ productId: product._id, quantity: 1 }));
+    dispatch(removeFromWishlist(product._id));
+    // alert(`${product.name} has been moved to your cart!`); // <-- Yeh line hata di gayi hai.
   };
 
   if (status === "loading" && (!wishlist || wishlist.length === 0)) {
@@ -183,7 +180,9 @@ const WishlistPage = () => {
                   </Button>
                   <IconButton
                     size="small"
-                    onClick={() => handleRemoveFromWishlist(product._id, product.name)}
+                    onClick={() =>
+                      handleRemoveFromWishlist(product._id, product.name)
+                    }
                     style={{ color: colors.red }}
                     title="Remove from Wishlist"
                   >
