@@ -143,13 +143,7 @@ const CartPage = () => {
     addresses,
     status: userStatus,
     message: userMessage,
-  } = useSelector((state) => state.user || {});
-
-  // =================================================================
-  // === FIX APPLIED ON THE LINE BELOW ===============================
-  // We added `|| {}` as a fallback. If `state.payment` is undefined,
-  // it will use an empty object, preventing the app from crashing.
-  // =================================================================
+  } = useSelector((state) => state.user || { cart: [], addresses: [] });
   const {
     status: paymentStatus,
     message: paymentMessage,
@@ -164,26 +158,23 @@ const CartPage = () => {
     msg: "",
     severity: "info",
   });
-
   const isPaymentProcessing = paymentStatus === "loading";
 
-  // 2. useEffects for fetching data and side effects
+  // 2. useEffects for fetching initial data
   useEffect(() => {
     dispatch(getCart());
     dispatch(getAddresses());
   }, [dispatch]);
 
+  // Set default address once addresses are loaded
   useEffect(() => {
-    if (addresses && addresses.length > 0) {
+    if (addresses && addresses.length > 0 && !selectedAddressId) {
       const defaultAddress = addresses.find((addr) => addr.isDefault);
-      if (defaultAddress) {
-        setSelectedAddressId(defaultAddress._id);
-      } else if (addresses[0]) {
-        setSelectedAddressId(addresses[0]._id);
-      }
+      setSelectedAddressId(defaultAddress?._id || addresses[0]._id);
     }
-  }, [addresses]);
+  }, [addresses, selectedAddressId]);
 
+  // Handle API error notifications
   useEffect(() => {
     const errorMsg =
       userStatus === "failed"
@@ -198,18 +189,17 @@ const CartPage = () => {
     }
   }, [userStatus, userMessage, paymentStatus, paymentMessage, dispatch]);
 
-  // 3. Derived Data using useMemo
+  // 3. Derived Data and Calculated Variables
   const { validCartItems, invalidCartItems } = useMemo(() => {
     const valid = [];
     const invalid = [];
     (cart || []).forEach((item) => {
-      if (item && item.product) valid.push(item);
+      if (item?.product) valid.push(item);
       else if (item) invalid.push(item);
     });
     return { validCartItems: valid, invalidCartItems: invalid };
   }, [cart]);
 
-  // 4. Calculated Variables
   const subtotal = validCartItems.reduce(
     (acc, item) => acc + item.product.price * item.quantity,
     0
@@ -218,50 +208,45 @@ const CartPage = () => {
     (addr) => addr._id === selectedAddressId
   );
 
-  // 5. Handler Functions
-  const handleCloseNotification = () => {
+  // 4. Handler Functions
+  const handleCloseNotification = () =>
     setNotification({ ...notification, open: false });
-  };
-
   const handleSelectAddress = (id) => {
     setSelectedAddressId(id);
     setIsAddressModalOpen(false);
   };
-
-  const handleRemoveFromCart = (cartItemId) => {
+  const handleRemoveFromCart = (cartItemId) =>
     dispatch(removeFromCart(cartItemId));
-  };
-
   const handleQuantityChange = (id, qty) => {
-    if (qty > 0) {
-      dispatch(updateCartQuantity({ productId: id, quantity: qty }));
-    }
+    if (qty > 0) dispatch(updateCartQuantity({ productId: id, quantity: qty }));
   };
 
+  // --- FIX 1: SIMPLIFIED PAYMENT HANDLER ---
   const handleProceedToPayment = () => {
-    if (
-      !selectedAddressId ||
-      invalidCartItems.length > 0 ||
-      isPaymentProcessing
-    ) {
+    if (!selectedAddressId) {
+      setNotification({
+        open: true,
+        msg: "Please select a shipping address first.",
+        severity: "warning",
+      });
       return;
     }
-    const orderDataForBackend = {
-      addressId: selectedAddressId,
-      amount: subtotal * 100, // Convert to paise
-    };
-    dispatch(createRazorpayOrder(orderDataForBackend));
+    if (invalidCartItems.length > 0) {
+      setNotification({
+        open: true,
+        msg: "Please remove unavailable items to proceed.",
+        severity: "warning",
+      });
+      return;
+    }
+    // Only send the addressId. The backend will calculate the final amount securely.
+    dispatch(createRazorpayOrder({ addressId: selectedAddressId }));
   };
 
-  // 6. useEffects for payment logic and debug
+  // --- FIX 2: STABILIZED USEEFFECT FOR RAZORPAY MODAL ---
   useEffect(() => {
-    console.log("All Env Vars:", process.env);
-  }, []);
-
-  useEffect(() => {
+    // This effect should ONLY run when a new Razorpay order is successfully created.
     if (razorpayOrder) {
-      console.log("Razorpay Order:", razorpayOrder);
-      console.log("Razorpay Key:", process.env.REACT_APP_RAZORPAY_KEY_ID);
       const displayPaymentModal = async () => {
         const res = await loadRazorpayScript(
           "https://checkout.razorpay.com/v1/checkout.js"
@@ -275,36 +260,16 @@ const CartPage = () => {
           return;
         }
 
-        if (!process.env.REACT_APP_RAZORPAY_KEY_ID) {
-          console.log(process.env.REACT_APP_RAZORPAY_KEY_ID);
-          setNotification({
-            open: true,
-            msg: "Razorpay authentication key is missing. Check .env configuration.",
-            severity: "error",
-          });
-          return;
-        }
-
-        if (
-          !razorpayOrder.amount ||
-          !razorpayOrder.currency ||
-          !razorpayOrder.orderId
-        ) {
-          setNotification({
-            open: true,
-            msg: "Invalid Razorpay order data. Contact support.",
-            severity: "error",
-          });
-          return;
-        }
-        console.log(process.env.REACT_APP_RAZORPAY_KEY_ID);
+        const currentSelectedAddress = addresses?.find(
+          (addr) => addr._id === razorpayOrder.addressId
+        );
 
         const options = {
-          key:
-            process.env.REACT_APP_RAZORPAY_KEY_ID || "rzp_test_z1YBL0V1v1ffxs",
-          amount: razorpayOrder.amount,
+          key: razorpayOrder.key, // Use the key from the backend response
+          amount: razorpayOrder.amount, // Directly use amount from backend (already in paise)
           currency: razorpayOrder.currency,
-          name: "Chia Seeds Store",
+          name: "Your Store Name",
+          description: "Payment for your order",
           order_id: razorpayOrder.orderId,
           handler: function (response) {
             dispatch(
@@ -312,17 +277,18 @@ const CartPage = () => {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                addressId: selectedAddressId,
+                addressId: razorpayOrder.addressId,
               })
             );
           },
           prefill: {
-            name: user?.name || "Guest User",
+            name: user?.fullName || "Guest User",
             email: user?.email || "",
-            contact: selectedAddress?.phone || "",
+            contact: currentSelectedAddress?.phone || "",
           },
           theme: { color: "#3399cc" },
         };
+
         try {
           const paymentObject = new window.Razorpay(options);
           paymentObject.on("payment.failed", (response) => {
@@ -342,19 +308,12 @@ const CartPage = () => {
           });
         }
       };
+
       displayPaymentModal();
     }
-  }, [
-    razorpayOrder,
-    dispatch,
-    user,
-    addresses,
-    selectedAddressId,
-    navigate,
-    selectedAddress,
-  ]);
+  }, [razorpayOrder, dispatch, user, addresses]); // Dependency array is now stable
 
-  // Updated useEffect for handling successful payment
+  // Handle successful payment confirmation
   useEffect(() => {
     if (finalOrder) {
       dispatch(clearCart());
@@ -367,21 +326,22 @@ const CartPage = () => {
     }
   }, [finalOrder, navigate, dispatch]);
 
+  // Cleanup effect
   useEffect(() => {
-    return () => {
-      dispatch(resetPaymentStatus());
-    };
+    return () => dispatch(resetPaymentStatus());
   }, [dispatch]);
 
-  // 7. Helper Functions for rendering
   const getNotificationColor = (severity) => {
-    if (severity === "error") return "#f44336";
-    if (severity === "warning") return "#ff9800";
-    if (severity === "success") return "#4caf50";
-    return "#2196f3";
+    const colors = {
+      error: "#f44336",
+      warning: "#ff9800",
+      success: "#4caf50",
+      info: "#2196f3",
+    };
+    return colors[severity] || colors.info;
   };
 
-  // 8. Return JSX
+  // 5. JSX Rendering
   return (
     <div className={classes.pageContainer}>
       <Typography variant="h4" gutterBottom style={{ fontWeight: "bold" }}>
@@ -415,6 +375,7 @@ const CartPage = () => {
         <Grid container spacing={4}>
           <Grid item xs={12} md={8}>
             <Paper elevation={2} style={{ padding: "1rem 2rem" }}>
+              {/* Rendering valid and invalid cart items */}
               {validCartItems.map(({ _id, product, quantity }, index) => (
                 <React.Fragment key={_id}>
                   <div className={classes.cartItemRow}>
@@ -573,10 +534,8 @@ const CartPage = () => {
                   >
                     {isPaymentProcessing ? (
                       <CircularProgress size={24} color="inherit" />
-                    ) : razorpayOrder ? (
-                      `Pay ₹${(razorpayOrder.amount / 100).toLocaleString()}`
                     ) : (
-                      `Pay ₹${subtotal.toLocaleString()}`
+                      `Proceed to Pay ₹${subtotal.toLocaleString()}`
                     )}
                   </Button>
                   {invalidCartItems.length > 0 && (
@@ -597,6 +556,7 @@ const CartPage = () => {
         </Grid>
       )}
 
+      {/* Address Selection Modal */}
       <Modal
         open={isAddressModalOpen}
         onClose={() => setIsAddressModalOpen(false)}
@@ -638,6 +598,7 @@ const CartPage = () => {
         </div>
       </Modal>
 
+      {/* Notification Snackbar */}
       <Snackbar
         open={notification.open}
         autoHideDuration={6000}
