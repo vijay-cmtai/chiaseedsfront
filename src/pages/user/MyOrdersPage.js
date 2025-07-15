@@ -116,9 +116,25 @@ const MyOrdersPage = () => {
     message = "",
   } = useSelector((state) => state.user || {});
 
+  // Check if user is authenticated
+  const isAuthenticated = useSelector(
+    (state) => state.auth?.isAuthenticated || state.user?.isAuthenticated
+  );
+
   useEffect(() => {
-    if (status === "idle") dispatch(getMyOrders());
-  }, [dispatch, status]);
+    // Always fetch orders when component mounts, regardless of status
+    // This ensures fresh data after login
+    if (isAuthenticated) {
+      dispatch(getMyOrders());
+    }
+  }, [dispatch, isAuthenticated]);
+
+  // Additional useEffect to handle the case where orders are empty but user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && orders.length === 0 && status === "idle") {
+      dispatch(getMyOrders());
+    }
+  }, [dispatch, isAuthenticated, orders.length, status]);
 
   const handleTabChange = (e, newValue) => setTabIndex(newValue);
 
@@ -137,12 +153,22 @@ const MyOrdersPage = () => {
     }));
   };
 
-  if (status === "loading" && orders.length === 0)
+  // Show loading if we're authenticated but still loading orders
+  if (
+    isAuthenticated &&
+    (status === "loading" || (status === "idle" && orders.length === 0))
+  ) {
     return (
-      <Box display="flex" justifyContent="center" height="40vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="40vh"
+      >
         <CircularProgress />
       </Box>
     );
+  }
 
   if (status === "failed")
     return (
@@ -150,6 +176,20 @@ const MyOrdersPage = () => {
         Error: {message}
       </Typography>
     );
+
+  // If not authenticated, show appropriate message
+  if (!isAuthenticated) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="40vh"
+      >
+        <Typography>Please login to view your orders.</Typography>
+      </Box>
+    );
+  }
 
   return (
     <div className={classes.pageContainer}>
