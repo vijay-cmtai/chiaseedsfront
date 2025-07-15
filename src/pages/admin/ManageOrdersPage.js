@@ -14,33 +14,35 @@ import {
   CircularProgress,
   IconButton,
   Collapse,
-  Tooltip,
+  Button, // Import Button for mobile view
+  useTheme,
+  useMediaQuery,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
-import AutorenewIcon from "@material-ui/icons/Autorenew";
 
 import OrderTracker from "../../components/OrderTracker";
 import {
   getAllAdminOrders,
-  createShipmentForOrder,
   resetAdminStatus,
 } from "../../features/admin/adminSlice";
 
 const useStyles = makeStyles((theme) => ({
-  root: { padding: theme.spacing(3), backgroundColor: "#f9f9f9" },
-  header: { marginBottom: theme.spacing(3), fontWeight: "bold" },
+  root: {
+    padding: theme.spacing(2),
+    [theme.breakpoints.up("sm")]: {
+      padding: theme.spacing(3),
+    },
+    backgroundColor: "#f9f9f9",
+  },
+  header: {
+    marginBottom: theme.spacing(3),
+    fontWeight: "bold",
+  },
   tableContainer: {
     maxHeight: "75vh",
     boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-  },
-  alertBox: {
-    padding: theme.spacing(2),
-    marginBottom: theme.spacing(3),
-    backgroundColor: "#fffbe6",
-    color: "#856404",
-    borderLeft: `5px solid #ffc107`,
   },
   errorBox: {
     padding: theme.spacing(2),
@@ -64,6 +66,26 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2),
     backgroundColor: theme.palette.grey[50],
   },
+  // --- New styles for mobile card view ---
+  mobileCard: {
+    marginBottom: theme.spacing(2),
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+  },
+  cardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: theme.spacing(1.5, 2),
+  },
+  cardContent: {
+    padding: theme.spacing(0, 2, 2, 2),
+  },
+  cardRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: theme.spacing(1),
+  },
 }));
 
 const getStatusColor = (status) => {
@@ -83,23 +105,27 @@ const getStatusColor = (status) => {
   }
 };
 
-const Row = ({ order }) => {
+const FailedShipmentInfo = () => {
+  return (
+    <Box bgcolor="#ffebee" p={1.5} borderRadius={1} mb={2}>
+      <Typography variant="body2" color="error" style={{ fontWeight: "bold" }}>
+        Automatic Shipment Failed. Please create it manually.
+      </Typography>
+    </Box>
+  );
+};
+
+const DesktopRow = ({ order }) => {
   const classes = useStyles();
-  const dispatch = useDispatch();
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const isFailedShipment =
     order.orderStatus === "Paid" && !order.shipmentDetails?.trackingNumber;
-  const { status: actionStatus } = useSelector((state) => state.admin);
-
-  const handleRetryShipment = () => {
-    dispatch(createShipmentForOrder(order._id)); // ✅ Corrected
-  };
 
   return (
     <>
       <TableRow className={isFailedShipment ? classes.failedShipmentRow : ""}>
         <TableCell>
-          <IconButton onClick={() => setOpen(!open)}>
+          <IconButton size="small" onClick={() => setOpen(!open)}>
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
@@ -118,7 +144,6 @@ const Row = ({ order }) => {
           />
         </TableCell>
       </TableRow>
-
       <TableRow>
         <TableCell className={classes.collapsibleCell} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
@@ -126,38 +151,7 @@ const Row = ({ order }) => {
               <Typography variant="h6" gutterBottom>
                 Order Details
               </Typography>
-
-              {isFailedShipment && (
-                <Box
-                  display="flex"
-                  alignItems="center"
-                  bgcolor="#ffebee"
-                  p={1}
-                  borderRadius={1}
-                  mb={2}
-                >
-                  <Typography
-                    variant="body2"
-                    color="error"
-                    style={{ flexGrow: 1 }}
-                  >
-                    Automatic shipment failed.
-                  </Typography>
-                  <Tooltip title="Retry Shipment Creation">
-                    <IconButton
-                      onClick={handleRetryShipment}
-                      disabled={actionStatus === "loading"}
-                    >
-                      {actionStatus === "loading" ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <AutorenewIcon color="primary" />
-                      )}
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              )}
-
+              {isFailedShipment && <FailedShipmentInfo />}
               <OrderTracker order={order} />
             </Box>
           </Collapse>
@@ -167,12 +161,81 @@ const Row = ({ order }) => {
   );
 };
 
+const MobileCard = ({ order }) => {
+  const classes = useStyles();
+  const [open, setOpen] = useState(false);
+  const isFailedShipment =
+    order.orderStatus === "Paid" && !order.shipmentDetails?.trackingNumber;
+
+  return (
+    <Paper
+      className={`${classes.mobileCard} ${isFailedShipment ? classes.failedShipmentRow : ""}`}
+    >
+      <Box className={classes.cardHeader}>
+        <Typography variant="subtitle1" style={{ fontWeight: "bold" }}>
+          #{order._id.slice(-6).toUpperCase()}
+        </Typography>
+        <Chip
+          label={order.orderStatus}
+          size="small"
+          className={classes.chip}
+          style={{ backgroundColor: getStatusColor(order.orderStatus) }}
+        />
+      </Box>
+      <Box className={classes.cardContent}>
+        <Box className={classes.cardRow}>
+          <Typography variant="body2" color="textSecondary">
+            Customer
+          </Typography>
+          <Typography variant="body2">
+            {order.shippingAddress?.fullName || order.user?.fullName || "N/A"}
+          </Typography>
+        </Box>
+        <Box className={classes.cardRow}>
+          <Typography variant="body2" color="textSecondary">
+            Total
+          </Typography>
+          <Typography variant="body2" style={{ fontWeight: 500 }}>
+            ₹{order.totalPrice.toLocaleString()}
+          </Typography>
+        </Box>
+        <Box className={classes.cardRow}>
+          <Typography variant="body2" color="textSecondary">
+            Date
+          </Typography>
+          <Typography variant="body2">
+            {new Date(order.createdAt).toLocaleDateString()}
+          </Typography>
+        </Box>
+        <Box display="flex" justifyContent="flex-end">
+          <Button
+            size="small"
+            onClick={() => setOpen(!open)}
+            endIcon={open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          >
+            {open ? "Hide Details" : "Show Details"}
+          </Button>
+        </Box>
+      </Box>
+      <Collapse in={open} timeout="auto" unmountOnExit>
+        <Box className={classes.detailsBox}>
+          {isFailedShipment && <FailedShipmentInfo />}
+          <OrderTracker order={order} />
+        </Box>
+      </Collapse>
+    </Paper>
+  );
+};
+
 const ManageOrdersPage = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { orders = [], status, message } = useSelector((state) => state.admin);
 
   useEffect(() => {
+    dispatch(resetAdminStatus());
     dispatch(getAllAdminOrders());
     return () => dispatch(resetAdminStatus());
   }, [dispatch]);
@@ -194,7 +257,7 @@ const ManageOrdersPage = () => {
     );
   }
 
-  if (status === "failed") {
+  if (status === "failed" && orders.length === 0) {
     return (
       <Box p={3}>
         <Paper className={classes.errorBox}>
@@ -211,33 +274,42 @@ const ManageOrdersPage = () => {
         Manage All Orders
       </Typography>
 
-      <TableContainer component={Paper} className={classes.tableContainer}>
-        <Table stickyHeader aria-label="collapsible table">
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell className={classes.tableHeaderCell}>
-                Order ID
-              </TableCell>
-              <TableCell className={classes.tableHeaderCell}>
-                Customer
-              </TableCell>
-              <TableCell className={classes.tableHeaderCell}>Date</TableCell>
-              <TableCell className={classes.tableHeaderCell}>Total</TableCell>
-              <TableCell className={classes.tableHeaderCell}>
-                DB Status
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {sortedOrders.map((order) => (
-              <Row key={order._id} order={order} />
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {isMobile ? (
+        <Box>
+          {sortedOrders.map((order) => (
+            <MobileCard key={order._id} order={order} />
+          ))}
+        </Box>
+      ) : (
+        <TableContainer component={Paper} className={classes.tableContainer}>
+          <Table stickyHeader aria-label="collapsible table">
+            <TableHead>
+              <TableRow>
+                <TableCell />
+                <TableCell className={classes.tableHeaderCell}>
+                  Order ID
+                </TableCell>
+                <TableCell className={classes.tableHeaderCell}>
+                  Customer
+                </TableCell>
+                <TableCell className={classes.tableHeaderCell}>Date</TableCell>
+                <TableCell className={classes.tableHeaderCell}>Total</TableCell>
+                <TableCell className={classes.tableHeaderCell}>
+                  DB Status
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sortedOrders.map((order) => (
+                <DesktopRow key={order._id} order={order} />
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
     </div>
   );
 };
 
+// ✨ FIX: Removed the duplicate "export"
 export default ManageOrdersPage;
