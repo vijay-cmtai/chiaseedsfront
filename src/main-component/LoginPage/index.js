@@ -111,7 +111,7 @@ const LoginPage = () => {
     if ((isLoginSuccess || isAuthenticated) && !hasNavigated.current) {
       hasNavigated.current = true;
 
-      toast.success("Logged in successfully!");
+      // toast.success("Logged in successfully!");
 
       const loggedInUser = user?.user || user; // handle different structures
 
