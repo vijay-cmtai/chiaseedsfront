@@ -40,75 +40,76 @@ import OtpVerificationPage from "../OtpVerificationPage";
 import Privacypolicy from "../PrivacyPolicy";
 import TermsAndConditions from "../TermsAndCondition";
 import OrderConfirmationPage from "../../pages/OrderConfirmationPage";
+import ScrollToTop from "../../components/ScrollToTop";
 
 const AllRoute = () => {
   return (
-    <Routes>
-      {/* ScrollToTop component page navigation par scroll ko handle karega */}
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<Homepage />} />
+        <Route path="/home" element={<Homepage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/shop" element={<ShopPage />} />
+        <Route path="/product-single/:id" element={<ProductDetailsPage />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
+        <Route path="/404" element={<ErrorPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<SignUpPage />} />
+        <Route path="/verify-otp" element={<OtpVerificationPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/blog" element={<Blog />} />
 
-      {/* --- Public Routes --- */}
-      <Route path="/" element={<Homepage />} />
-      <Route path="/home" element={<Homepage />} />
-      <Route path="/about" element={<AboutPage />} />
-      <Route path="/shop" element={<ShopPage />} />
-      <Route path="/product-single/:id" element={<ProductDetailsPage />} />
-      <Route path="/wishlist" element={<WishlistPage />} />
-      <Route path="/404" element={<ErrorPage />} />
-      <Route path="/contact" element={<ContactPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<SignUpPage />} />
-      <Route path="/verify-otp" element={<OtpVerificationPage />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/blog" element={<Blog />} />
+        {/* --- YAHAN NAYA ROUTE ADD KIYA GAYA HAI --- */}
+        <Route path="/blog-single/:id" element={<BlogSinglePage />} />
 
-      {/* --- YAHAN NAYA ROUTE ADD KIYA GAYA HAI --- */}
-      <Route path="/blog-single/:id" element={<BlogSinglePage />} />
-
-      <Route path="/termandcond" element={<TermsAndConditions />} />
-      <Route path="privacypolicy" element={<Privacypolicy />} />
-      <Route
-        path="/order-confirmation/:orderId"
-        element={<OrderConfirmationPage />}
-      />
-
-      {/* --- User Protected Routes --- */}
-      <Route
-        path="/user/*"
-        element={
-          <PrivateRoute>
-            <UserDashboardLayout />
-          </PrivateRoute>
-        }
-      >
-        <Route path="dashboard" element={<UserDashboardPage />} />
-        <Route path="orders" element={<MyOrdersPage />} />
-        <Route path="profile" element={<ProfilePage />} />
-        <Route path="address" element={<Addresspage />} />
-        <Route path="cart" element={<CartPage />} />
-        <Route path="wishlist" element={<WishlistPages />} />
-        <Route path="orders/:orderId" element={<OrderDetailPage />} />
-      </Route>
-
-      {/* --- Admin Protected Routes --- */}
-      <Route
-        path="/admin/*"
-        element={
-          <AdminRoute>
-            <AdminLayout />
-          </AdminRoute>
-        }
-      >
-        <Route path="dashboard" element={<AdminDashboardPage />} />
-        <Route path="products" element={<ManageProductsPage />} />
-        <Route path="orders" element={<ManageOrdersPage />} />
-        <Route path="users" element={<ManageUsersPage />} />
-        <Route path="products/add" element={<AddEditProductPage />} />
+        <Route path="/termandcond" element={<TermsAndConditions />} />
+        <Route path="privacypolicy" element={<Privacypolicy />} />
         <Route
-          path="products/edit/:productId"
-          element={<AddEditProductPage />}
+          path="/order-confirmation/:orderId"
+          element={<OrderConfirmationPage />}
         />
-      </Route>
-    </Routes>
+
+        {/* --- User Protected Routes --- */}
+        <Route
+          path="/user/*"
+          element={
+            <PrivateRoute>
+              <UserDashboardLayout />
+            </PrivateRoute>
+          }
+        >
+          <Route path="dashboard" element={<UserDashboardPage />} />
+          <Route path="orders" element={<MyOrdersPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="address" element={<Addresspage />} />
+          <Route path="cart" element={<CartPage />} />
+          <Route path="wishlist" element={<WishlistPages />} />
+          <Route path="orders/:orderId" element={<OrderDetailPage />} />
+        </Route>
+
+        {/* --- Admin Protected Routes --- */}
+        <Route
+          path="/admin/*"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
+          <Route path="dashboard" element={<AdminDashboardPage />} />
+          <Route path="products" element={<ManageProductsPage />} />
+          <Route path="orders" element={<ManageOrdersPage />} />
+          <Route path="users" element={<ManageUsersPage />} />
+          <Route path="products/add" element={<AddEditProductPage />} />
+          <Route
+            path="products/edit/:productId"
+            element={<AddEditProductPage />}
+          />
+        </Route>
+      </Routes>
+    </>
   );
 };
 
