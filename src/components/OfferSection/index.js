@@ -96,6 +96,24 @@ const styles = {
   },
 };
 
+// Data has been moved inside the component file for completeness
+// *** YAHAN PAR CONTENT UPDATE KIYA GAYA HAI ***
+const nutritionData = [
+  { label: "Serving Size", value: "28g (2 tbsp)" },
+  { label: "Calories", value: "138" },
+  { label: "Protein", value: "4.7g" },
+  { label: "Fat", value: "8.7g" },
+  { label: "Carbohydrates", value: "12g" },
+  { label: "Fiber", value: "9.8g" },
+  { label: "Calcium", value: "179mg (13% DV)" },
+  { label: "Magnesium", value: "95mg (23% DV)" },
+  { label: "Phosphorus", value: "244mg (20% DV)" }, // <-- Naya content
+  { label: "Omega-3", value: "4915mg" },
+  { label: "Iron", value: "2.2mg (12% DV)" },      // <-- Naya content
+  { label: "Zinc", value: "1.3mg (12% DV)" },      // <-- Naya content
+];
+
+
 const OfferSection = () => {
   const [isHovered, setIsHovered] = React.useState(false);
 
@@ -145,17 +163,5 @@ const OfferSection = () => {
   );
 };
 
-// Data has been moved inside the component file for completeness
-const nutritionData = [
-  { label: "Serving Size", value: "28g (2 tbsp)" },
-  { label: "Calories", value: "138" },
-  { label: "Protein", value: "4.7g" },
-  { label: "Fat", value: "8.7g" },
-  { label: "Carbohydrates", value: "12g" },
-  { label: "Fiber", value: "9.8g" },
-  { label: "Calcium", value: "179mg (13% DV)" },
-  { label: "Magnesium", value: "95mg (23% DV)" },
-  { label: "Omega-3", value: "4915mg" },
-];
 
 export default OfferSection;

@@ -1,3 +1,4 @@
+// src/features/payment/paymentAPI.js
 import axios from "axios";
 
 const BACKEND_URL =
@@ -29,9 +30,15 @@ const verifyPayment = async (paymentVerificationData) => {
   return response.data.data;
 };
 
+const retryShipment = async (orderData) => {
+  const response = await api.post("/retry-shipment", orderData);
+  return response.data.data;
+};
+
 const paymentService = {
   createRazorpayOrder,
   verifyPayment,
+  retryShipment,
 };
 
 export default paymentService;

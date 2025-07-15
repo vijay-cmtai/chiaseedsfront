@@ -1,6 +1,5 @@
-// src/pages/OrderConfirmationPage.js (FINAL AND CORRECTED CODE)
-
-import React, { useEffect } from "react";
+// src/pages/OrderConfirmationPage.js
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -15,8 +14,8 @@ import {
 import { makeStyles } from "@material-ui/core/styles";
 import CheckCircleOutlineIcon from "@material-ui/icons/CheckCircleOutline";
 
-// userSlice se actions import karein
 import { getSingleOrder, clearCurrentOrder } from "../features/user/userSlice";
+import { retryShipment } from "../features/payment/paymentSlice";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -60,6 +59,8 @@ const OrderConfirmationPage = () => {
   const { orderId } = useParams();
 
   const { currentOrder, status, message } = useSelector((state) => state.user);
+  const { paymentStatus } = useSelector((state) => state.payment);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   useEffect(() => {
     if (orderId) {
@@ -69,6 +70,13 @@ const OrderConfirmationPage = () => {
       dispatch(clearCurrentOrder());
     };
   }, [orderId, dispatch]);
+
+  const handleRetryShipment = async () => {
+    setIsRetrying(true);
+    await dispatch(retryShipment({ orderId }));
+    setIsRetrying(false);
+    dispatch(getSingleOrder(orderId)); // Refresh order details
+  };
 
   if (status === "loading" && !currentOrder) {
     return (
@@ -119,7 +127,6 @@ const OrderConfirmationPage = () => {
           <Box display="flex" justifyContent="space-between" mt={2}>
             <Typography color="textSecondary">Total Items:</Typography>
             <Typography>
-              {/* Safe access for orderItems array */}
               {currentOrder.orderItems?.reduce(
                 (acc, item) => acc + item.quantity,
                 0
@@ -128,16 +135,67 @@ const OrderConfirmationPage = () => {
           </Box>
           <Box display="flex" justifyContent="space-between" mt={1}>
             <Typography color="textSecondary">Payment Method:</Typography>
-            {/* =============== FIX: OPTIONAL CHAINING (?.) KA ISTEMAL ============== */}
-            <Typography>
-              {currentOrder.paymentDetails?.method || "N/A"}
-            </Typography>
-            {/* ======================================================================= */}
+            <Typography>{currentOrder.paymentMethod || "N/A"}</Typography>
           </Box>
           <Box display="flex" justifyContent="space-between" mt={1}>
+            <Typography color="textSecondary">Order Status:</Typography>
+            <Typography>{currentOrder.orderStatus}</Typography>
+          </Box>
+          {currentOrder.orderStatus === "Shipped" &&
+            currentOrder.shipmentDetails && (
+              <>
+                <Box display="flex" justifyContent="space-between" mt={1}>
+                  <Typography color="textSecondary">
+                    Tracking Number:
+                  </Typography>
+                  <Typography>
+                    {currentOrder.shipmentDetails.trackingNumber}
+                  </Typography>
+                </Box>
+                <Box display="flex" justifyContent="space-between" mt={1}>
+                  <Typography color="textSecondary">Courier:</Typography>
+                  <Typography>
+                    {currentOrder.shipmentDetails.courier}
+                  </Typography>
+                </Box>
+              </>
+            )}
+          {currentOrder.orderStatus === "Paid" &&
+            currentOrder.shipmentDetails?.error && (
+              <Box mt={2}>
+                <Typography variant="body2" color="error">
+                  Shipment creation failed: {currentOrder.shipmentDetails.error}
+                  . Our team is working on it, or you can try again.
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleRetryShipment}
+                  disabled={isRetrying || paymentStatus === "loading"}
+                  style={{ marginTop: "1rem" }}
+                >
+                  {isRetrying ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    "Retry Shipment"
+                  )}
+                </Button>
+              </Box>
+            )}
+          <Box display="flex" justifyContent="space-between" mt={2}>
             <Typography variant="h6">Total Amount:</Typography>
             <Typography variant="h6" color="primary">
               <strong>₹{currentOrder.totalPrice?.toLocaleString() || 0}</strong>
+            </Typography>
+          </Box>
+          <Box mt={2}>
+            <Typography variant="h6">Shipping Address</Typography>
+            <Typography variant="body2">
+              {currentOrder.shippingAddress?.fullName},{" "}
+              {currentOrder.shippingAddress?.addressLine1},{" "}
+              {currentOrder.shippingAddress?.city},{" "}
+              {currentOrder.shippingAddress?.state} -{" "}
+              {currentOrder.shippingAddress?.pincode}
             </Typography>
           </Box>
         </Box>

@@ -1,4 +1,4 @@
-// src/main-component/router/index.js (Full Corrected Code)
+// src/main-component/router/index.js (Updated Code)
 
 import React from "react";
 import { Routes, Route } from "react-router-dom";
@@ -19,9 +19,12 @@ import ContactPage from "../ContactPage";
 import LoginPage from "../LoginPage";
 import SignUpPage from "../SignUpPage";
 import Blog from "../BlogPage";
+// --- YAHAN BLOGSINGLEPAGE KA IMPORT ADD KAREIN ---
+import BlogSinglePage from "../BlogDetails"; // Maan rahe hain ki file ka naam BlogSinglePage.js hai
 import ForgotPassword from "../ForgotPassword";
 import AdminLayout from "../../Layout/AdminLayout";
 import UserDashboardLayout from "../../Layout/UserDashboardLayout";
+// ... baaki saare imports waise hi rahenge
 import UserDashboardPage from "../../pages/user/UserDashboardPage";
 import MyOrdersPage from "../../pages/user/MyOrdersPage";
 import ProfilePage from "../../pages/user/ProfilePage";
@@ -36,10 +39,13 @@ import AddEditProductPage from "../../pages/admin/AddEditProductPage";
 import OtpVerificationPage from "../OtpVerificationPage";
 import Privacypolicy from "../PrivacyPolicy";
 import TermsAndConditions from "../TermsAndCondition";
+import OrderConfirmationPage from "../../pages/OrderConfirmationPage";
 
 const AllRoute = () => {
   return (
     <Routes>
+      {/* ScrollToTop component page navigation par scroll ko handle karega */}
+
       {/* --- Public Routes --- */}
       <Route path="/" element={<Homepage />} />
       <Route path="/home" element={<Homepage />} />
@@ -54,9 +60,16 @@ const AllRoute = () => {
       <Route path="/verify-otp" element={<OtpVerificationPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/blog" element={<Blog />} />
-      <Route path="/termandcond" element={<TermsAndConditions/>}/>
-      <Route path="privacypolicy" element={<Privacypolicy/>}/>
 
+      {/* --- YAHAN NAYA ROUTE ADD KIYA GAYA HAI --- */}
+      <Route path="/blog-single/:id" element={<BlogSinglePage />} />
+
+      <Route path="/termandcond" element={<TermsAndConditions />} />
+      <Route path="privacypolicy" element={<Privacypolicy />} />
+      <Route
+        path="/order-confirmation/:orderId"
+        element={<OrderConfirmationPage />}
+      />
 
       {/* --- User Protected Routes --- */}
       <Route
@@ -89,8 +102,6 @@ const AllRoute = () => {
         <Route path="products" element={<ManageProductsPage />} />
         <Route path="orders" element={<ManageOrdersPage />} />
         <Route path="users" element={<ManageUsersPage />} />
-
-        {/* Corrected Routes for Adding/Editing Products */}
         <Route path="products/add" element={<AddEditProductPage />} />
         <Route
           path="products/edit/:productId"

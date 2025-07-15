@@ -15,12 +15,14 @@ import authReducer from "../features/auth/authSlice";
 import userReducer from "../features/user/userSlice";
 import adminReducer from "../features/admin/adminSlice";
 import productReducer from "../features/products/productSlice";
+import paymentReducer from "../features/payment/paymentSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
   user: userReducer,
   admin: adminReducer,
   products: productReducer,
+  payment: paymentReducer,
 });
 
 const persistConfig = {

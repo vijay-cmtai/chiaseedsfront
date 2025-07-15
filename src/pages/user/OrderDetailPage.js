@@ -1,5 +1,3 @@
-// src/pages/user/OrderDetailPage.js (FINAL CORRECTED CODE)
-
 import React, { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -18,15 +16,17 @@ import {
   ListItemText,
   ListItemAvatar,
   Avatar,
-  Chip, // Chip import kiya
+  Chip,
 } from "@material-ui/core";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
+// =================== FIX #1: Correct the import name ===================
 import {
-  getOrderDetail,
+  getSingleOrder, // Changed from getOrderDetail
   clearCurrentOrder,
 } from "../../features/user/userSlice";
+// ======================================================================
 
-// --- Styles (Thode behtar banaye gaye) ---
+// --- Styles ---
 const useStyles = makeStyles((theme) => ({
   pageContainer: {
     padding: theme.spacing(3),
@@ -87,8 +87,11 @@ const OrderDetailPage = () => {
 
   useEffect(() => {
     if (orderId) {
-      dispatch(getOrderDetail(orderId));
+      // ============ FIX #2: Use the correct function in dispatch =============
+      dispatch(getSingleOrder(orderId)); // Changed from getOrderDetail(orderId)
+      // ======================================================================
     }
+    // This part is excellent, it clears the order when you leave the page.
     return () => {
       dispatch(clearCurrentOrder());
     };
@@ -144,7 +147,10 @@ const OrderDetailPage = () => {
             </div>
             <Chip
               label={currentOrder.orderStatus}
-              className={`${classes.chip} ${getStatusChipClass(currentOrder.orderStatus, classes)}`}
+              className={`${classes.chip} ${getStatusChipClass(
+                currentOrder.orderStatus,
+                classes
+              )}`}
             />
           </Box>
           <Divider style={{ margin: "16px 0" }} />
@@ -158,7 +164,6 @@ const OrderDetailPage = () => {
                 {currentOrder.orderItems.map((item) => (
                   <ListItem key={item.product?._id || item.name} disableGutters>
                     <ListItemAvatar>
-                      {/* === THE FIX IS HERE === */}
                       <Avatar
                         variant="rounded"
                         src={item.product?.mainImage}
@@ -167,7 +172,9 @@ const OrderDetailPage = () => {
                     </ListItemAvatar>
                     <ListItemText
                       primary={item.name}
-                      secondary={`Quantity: ${item.quantity} x ₹${item.price.toLocaleString()}`}
+                      secondary={`Quantity: ${
+                        item.quantity
+                      } x ₹${item.price.toLocaleString()}`}
                     />
                     <Typography variant="body1" style={{ fontWeight: 500 }}>
                       ₹{(item.quantity * item.price).toLocaleString()}

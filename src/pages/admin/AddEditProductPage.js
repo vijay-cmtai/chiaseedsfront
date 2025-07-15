@@ -3,14 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  createProduct,
-  updateProduct,
-  // Agar products list pehle se na ho to fetch karne ke liye
-  // getAllProducts,
-} from "../../features/admin/adminSlice";
-
-// --- Material-UI Imports ---
+import { createProduct, updateProduct } from "../../features/admin/adminSlice";
 import { makeStyles } from "@material-ui/core/styles";
 import {
   Typography,
@@ -21,12 +14,11 @@ import {
   Button,
   Box,
   IconButton,
-  CircularProgress, // Loading ke liye
+  CircularProgress,
 } from "@material-ui/core";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import PhotoCamera from "@material-ui/icons/PhotoCamera";
 
-// --- Colors aur Styles (Aapke code se) ---
 const colors = {
   primary: "#878fba",
   textDark: "#3d2b56",
@@ -92,52 +84,57 @@ const AddEditProductPage = () => {
   const dispatch = useDispatch();
   const isEditing = Boolean(productId);
 
-  // Redux se status aur message get karein, with fallback to avoid destructuring undefined
   const {
-    status = "idle",
-    message = "",
+    status,
+    message,
     products = [],
   } = useSelector((state) => state.admin || {});
 
-  // Form ke data ke liye state
+  // --- YAHAN BADLAAV KIYA GAYA HAI ---
+  // Form state mein weight aur dimensions add karein
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
     stock: "",
-    category: "", // Category field bhi add karein
+    category: "",
+    weight: "",
+    length: "",
+    breadth: "",
+    height: "",
   });
   const [productImage, setProductImage] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
 
-  // Agar editing mode hai, to product data ko form me fill karein
   useEffect(() => {
     if (isEditing) {
       const productToEdit = products.find((p) => p._id === productId);
       if (productToEdit) {
         setFormData({
-          name: productToEdit.name,
-          description: productToEdit.description,
-          price: productToEdit.price,
-          stock: productToEdit.stock,
-          category: productToEdit.category,
+          name: productToEdit.name || "",
+          description: productToEdit.description || "",
+          price: productToEdit.price || "",
+          stock: productToEdit.stock || "",
+          category: productToEdit.category || "",
+          // --- YAHAN BADLAAV KIYA GAYA HAI ---
+          // Weight aur dimensions ko bhi fill karein
+          weight: productToEdit.weight || "",
+          length: productToEdit.dimensions?.length || "",
+          breadth: productToEdit.dimensions?.breadth || "",
+          height: productToEdit.dimensions?.height || "",
         });
-        // Existing image ko preview me dikhayein
-        if (productToEdit.images && productToEdit.images.length > 0) {
-          setImagePreviewUrl(productToEdit.images[0]);
+        if (productToEdit.mainImage) {
+          setImagePreviewUrl(productToEdit.mainImage);
         }
       }
-      // Agar products list khali hai, to aap yahan dispatch(getAllProducts()) call kar sakte hain
     }
   }, [isEditing, productId, products]);
 
-  // Input fields ke change ko handle karein
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Image change ko handle karein
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -146,32 +143,31 @@ const AddEditProductPage = () => {
     }
   };
 
-  // Form submit ko handle karein
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
-    // Create ke liye FormData ka istemal karein
-    const productData = new FormData();
-    productData.append("name", formData.name);
-    productData.append("description", formData.description);
-    productData.append("price", formData.price);
-    productData.append("stock", formData.stock);
-    productData.append("category", formData.category);
+    // --- YAHAN BADLAAV KIYA GAYA HAI ---
+    // FormData mein weight aur dimensions ko bhi append karein
+    const productDataForCreation = new FormData();
+    Object.keys(formData).forEach((key) => {
+      productDataForCreation.append(key, formData[key]);
+    });
     if (productImage) {
-      productData.append("images", productImage); // Key 'images' honi chahiye (multer ke according)
+      productDataForCreation.append("images", productImage);
     }
+
+    // Update ke liye plain object banayein
+    const productDataForUpdate = { ...formData, _id: productId };
 
     let resultAction;
     if (isEditing) {
-      // Backend update function abhi image handle nahi kar raha, sirf text data bhejenge
-      resultAction = await dispatch(
-        updateProduct({ ...formData, _id: productId })
-      );
+      // Note: Backend mein image update ka logic alag se banana padega.
+      // Abhi ke liye sirf text data update ho raha hai.
+      resultAction = await dispatch(updateProduct(productDataForUpdate));
     } else {
-      resultAction = await dispatch(createProduct(productData));
+      resultAction = await dispatch(createProduct(productDataForCreation));
     }
 
-    // Agar action successful hai to navigate karein
     if (
       createProduct.fulfilled.match(resultAction) ||
       updateProduct.fulfilled.match(resultAction)
@@ -196,10 +192,8 @@ const AddEditProductPage = () => {
         </Button>
       </Box>
 
-      {/* Form tag aur onSubmit handler add karein */}
       <form onSubmit={handleFormSubmit}>
         <Grid container spacing={4}>
-          {/* Left Column: Product Details Form */}
           <Grid item xs={12} md={8}>
             <Card className={classes.formCard}>
               <CardContent>
@@ -262,9 +256,71 @@ const AddEditProductPage = () => {
                       variant="outlined"
                       multiline
                       rows={6}
-                      placeholder="Describe the product details..."
                       value={formData.description}
                       onChange={handleInputChange}
+                    />
+                  </Grid>
+
+                  {/* --- YAHAN NAYE FIELDS ADD KIYE GAYE HAIN --- */}
+                  <Grid item xs={12}>
+                    <Typography
+                      variant="h6"
+                      className={classes.sectionTitle}
+                      style={{ marginTop: "20px" }}
+                    >
+                      Shipping Details
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                      fullWidth
+                      required
+                      name="weight"
+                      label="Weight (kg)"
+                      type="number"
+                      variant="outlined"
+                      value={formData.weight}
+                      onChange={handleInputChange}
+                      inputProps={{ step: "0.01" }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                      fullWidth
+                      required
+                      name="length"
+                      label="Length (cm)"
+                      type="number"
+                      variant="outlined"
+                      value={formData.length}
+                      onChange={handleInputChange}
+                      inputProps={{ step: "0.1" }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                      fullWidth
+                      required
+                      name="breadth"
+                      label="Breadth (cm)"
+                      type="number"
+                      variant="outlined"
+                      value={formData.breadth}
+                      onChange={handleInputChange}
+                      inputProps={{ step: "0.1" }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                      fullWidth
+                      required
+                      name="height"
+                      label="Height (cm)"
+                      type="number"
+                      variant="outlined"
+                      value={formData.height}
+                      onChange={handleInputChange}
+                      inputProps={{ step: "0.1" }}
                     />
                   </Grid>
                 </Grid>
@@ -272,7 +328,6 @@ const AddEditProductPage = () => {
             </Card>
           </Grid>
 
-          {/* Right Column: Image Uploader */}
           <Grid item xs={12} md={4}>
             <Card className={classes.formCard}>
               <CardContent>
@@ -309,14 +364,12 @@ const AddEditProductPage = () => {
           </Grid>
         </Grid>
 
-        {/* Error Message Display */}
         {status === "failed" && (
           <Box mt={2}>
             <Typography color="error">{message}</Typography>
           </Box>
         )}
 
-        {/* Save Button */}
         <Box mt={4} style={{ textAlign: "right" }}>
           <Button
             type="submit"

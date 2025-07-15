@@ -1,6 +1,6 @@
-// src/Layout/AdminLayout.js (MOBILE RESPONSIVE CODE)
+// src/Layout/AdminLayout.js (REFINED & WELL-COMMENTED)
 
-import React from "react";
+import React, { useState } from "react"; // useState is better than React.useState
 import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
@@ -13,11 +13,11 @@ import {
   makeStyles,
   CssBaseline,
   Divider,
-  AppBar, // Import kiya gaya
-  Toolbar, // Import kiya gaya
-  IconButton, // Import kiya gaya
-  useTheme, // Import kiya gaya
-  useMediaQuery, // Import kiya gaya
+  AppBar,
+  Toolbar,
+  IconButton,
+  useTheme,
+  useMediaQuery,
 } from "@material-ui/core";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import ShoppingCartIcon from "@material-ui/icons/ShoppingCart";
@@ -25,15 +25,16 @@ import ListAltIcon from "@material-ui/icons/ListAlt";
 import PeopleIcon from "@material-ui/icons/People";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import HomeIcon from "@material-ui/icons/Home";
-import MenuIcon from "@material-ui/icons/Menu"; // Menu Icon import kiya
+import MenuIcon from "@material-ui/icons/Menu";
 
 import { logout, reset } from "../features/auth/authSlice";
 
+// --- Styles ---
 const colors = {
   primary: "#878fba",
   primaryHover: "#6c749d",
   sidebarBg: "#9788b9",
-  sidebarText: "rgba(255, 255, 255, 0.75)",
+  sidebarText: "rgba(255, 255, 255, 0.85)", // Slightly more visible text
   sidebarTextActive: "#ffffff",
   sidebarActiveBg: "rgba(0, 0, 0, 0.2)",
   contentBg: "#f4f6f8",
@@ -44,75 +45,79 @@ const drawerWidth = 260;
 const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
-    fontFamily: "'Poppins', sans-serif",
+    minHeight: "100vh",
+    backgroundColor: colors.contentBg,
   },
-  // Mobile par dikhne wala AppBar
-  appBarMobile: {
+  // NOTE: AppBar for mobile view only
+  appBar: {
     [theme.breakpoints.up("md")]: {
-      display: "none", // Desktop par hide rahega
+      // 'md' is the breakpoint for medium screens (desktops)
+      display: "none",
     },
     backgroundColor: colors.sidebarBg,
+    boxShadow: "0 2px 4px -1px rgba(0,0,0,.2)", // A subtle shadow
   },
+  // NOTE: This class is for the navigation sidebar itself
   drawer: {
     [theme.breakpoints.up("md")]: {
       width: drawerWidth,
       flexShrink: 0,
     },
   },
+  // NOTE: Styles for the paper inside the Drawer component
   drawerPaper: {
     width: drawerWidth,
     backgroundColor: colors.sidebarBg,
     borderRight: "none",
-    display: "flex",
-    flexDirection: "column",
+    color: colors.sidebarText,
   },
+  // NOTE: Main content area where the <Outlet /> renders pages
   content: {
     flexGrow: 1,
-    padding: theme.spacing(4),
-    backgroundColor: colors.contentBg,
-    minHeight: "100vh",
-  },
-  // Spacer div ke liye style jo 'dense' toolbar se match karegi
-  toolbarDense: {
-    minHeight: 48,
+    padding: theme.spacing(3),
+    // Add top padding to account for the mobile app bar's height
+    [theme.breakpoints.down("sm")]: {
+      padding: theme.spacing(2),
+      paddingTop: `calc(56px + ${theme.spacing(2)}px)`, // 56px is typical mobile Toolbar height
+    },
   },
   sidebarHeader: {
-    padding: theme.spacing(3),
+    padding: theme.spacing(2, 2),
     textAlign: "center",
     borderBottom: `1px solid rgba(255, 255, 255, 0.1)`,
   },
   sidebarHeaderText: {
-    fontSize: "22px",
-    fontWeight: "700",
+    fontWeight: 700,
     color: colors.sidebarTextActive,
     letterSpacing: "1px",
   },
   navList: {
-    flexGrow: 1,
-    padding: theme.spacing(1, 0),
+    padding: theme.spacing(1, 2), // Add horizontal padding
   },
   listItem: {
-    padding: theme.spacing(1.2, 3),
+    borderRadius: "8px",
+    marginBottom: theme.spacing(1),
     color: colors.sidebarText,
-    transition: "all 0.2s ease-in-out",
     "& .MuiListItemIcon-root": {
       color: "inherit",
-      minWidth: "45px",
+      minWidth: 40,
     },
     "&:hover": {
       backgroundColor: colors.sidebarActiveBg,
       color: colors.sidebarTextActive,
     },
   },
+  // NOTE: This is the active style for NavLink
   activeLink: {
     backgroundColor: colors.primary,
     color: colors.sidebarTextActive,
-    fontWeight: 500,
+    fontWeight: 600,
     "&:hover": {
       backgroundColor: colors.primaryHover,
     },
   },
   sidebarFooter: {
+    marginTop: "auto", // Pushes this block to the bottom
     padding: theme.spacing(1, 0),
     borderTop: `1px solid rgba(255, 255, 255, 0.1)`,
   },
@@ -124,8 +129,9 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const theme = useTheme();
 
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  // useMediaQuery is the key to responsive logic in JS
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -144,9 +150,8 @@ const AdminLayout = () => {
     { text: "Users", to: "/admin/users", icon: <PeopleIcon /> },
   ];
 
-  // Drawer ka content alag se bana liya
   const drawerContent = (
-    <>
+    <div>
       <div className={classes.sidebarHeader}>
         <Typography variant="h5" className={classes.sidebarHeaderText}>
           ADMIN PANEL
@@ -159,12 +164,11 @@ const AdminLayout = () => {
             component={NavLink}
             to={item.to}
             key={item.text}
+            // react-router-dom v6 uses a function for className/style to check active state
             className={({ isActive }) =>
-              isActive
-                ? `${classes.listItem} ${classes.activeLink}`
-                : classes.listItem
+              `${classes.listItem} ${isActive ? classes.activeLink : ""}`
             }
-            onClick={isMobile ? handleDrawerToggle : null} // Mobile par link click pe drawer band hoga
+            onClick={isDesktop ? undefined : handleDrawerToggle} // Close drawer on mobile click
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
@@ -172,30 +176,31 @@ const AdminLayout = () => {
         ))}
       </List>
       <div className={classes.sidebarFooter}>
-        <ListItem button component={Link} to="/" className={classes.listItem}>
-          <ListItemIcon>
-            <HomeIcon />
-          </ListItemIcon>
-          <ListItemText primary="Back to Home" />
-        </ListItem>
-        <Divider style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }} />
-        <ListItem button onClick={handleLogout} className={classes.listItem}>
-          <ListItemIcon>
-            <ExitToAppIcon />
-          </ListItemIcon>
-          <ListItemText primary="Sign Out" />
-        </ListItem>
+        <List>
+          <ListItem button component={Link} to="/" className={classes.listItem}>
+            <ListItemIcon>
+              <HomeIcon />
+            </ListItemIcon>
+            <ListItemText primary="Back to Home" />
+          </ListItem>
+          <ListItem button onClick={handleLogout} className={classes.listItem}>
+            <ListItemIcon>
+              <ExitToAppIcon />
+            </ListItemIcon>
+            <ListItemText primary="Sign Out" />
+          </ListItem>
+        </List>
       </div>
-    </>
+    </div>
   );
 
   return (
     <div className={classes.root}>
       <CssBaseline />
 
-      {/* Mobile-only AppBar */}
-      <AppBar position="fixed" className={classes.appBarMobile}>
-        <Toolbar variant="dense">
+      {/* AppBar is only for mobile screens */}
+      <AppBar position="fixed" className={classes.appBar}>
+        <Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -204,23 +209,15 @@ const AdminLayout = () => {
           >
             <MenuIcon />
           </IconButton>
+          <Typography variant="h6" noWrap>
+            Admin Menu
+          </Typography>
         </Toolbar>
       </AppBar>
 
       <nav className={classes.drawer} aria-label="admin navigation">
-        {isMobile ? (
-          // Mobile Drawer (Temporary)
-          <Drawer
-            variant="temporary"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            classes={{ paper: classes.drawerPaper }}
-            ModalProps={{ keepMounted: true }}
-          >
-            {drawerContent}
-          </Drawer>
-        ) : (
-          // Desktop Drawer (Permanent)
+        {isDesktop ? (
+          // Permanent drawer for desktop
           <Drawer
             classes={{ paper: classes.drawerPaper }}
             variant="permanent"
@@ -228,12 +225,24 @@ const AdminLayout = () => {
           >
             {drawerContent}
           </Drawer>
+        ) : (
+          // Temporary, collapsible drawer for mobile
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            classes={{ paper: classes.drawerPaper }}
+            ModalProps={{ keepMounted: true }} // Better for SEO and mobile performance
+          >
+            {drawerContent}
+          </Drawer>
         )}
       </nav>
 
+      {/* This is where your pages will be rendered */}
       <main className={classes.content}>
-        {/* Spacer for mobile view */}
-        {isMobile && <div className={classes.toolbarDense} />}
+        {/* Your original spacer div is no longer needed because
+            we added padding-top to the content class for mobile */}
         <Outlet />
       </main>
     </div>

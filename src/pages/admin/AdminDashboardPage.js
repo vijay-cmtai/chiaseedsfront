@@ -59,6 +59,11 @@ const useStyles = makeStyles((theme) => ({
     fontWeight: "bold",
     color: colors.textDark,
     marginBottom: theme.spacing(4),
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "1.2rem",
+      marginBottom: theme.spacing(2),
+      textAlign: "center",
+    },
   },
   statCard: {
     display: "flex",
@@ -68,6 +73,11 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
     backgroundColor: colors.cardBg,
     height: "100%",
+    [theme.breakpoints.down("xs")]: {
+      padding: theme.spacing(1.5),
+      borderRadius: "10px",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+    },
   },
   iconContainer: {
     padding: theme.spacing(2),
@@ -77,37 +87,90 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    [theme.breakpoints.down("xs")]: {
+      padding: theme.spacing(1.2),
+      marginRight: theme.spacing(2),
+    },
   },
-  statValue: { fontWeight: "bold", color: colors.textDark, lineHeight: 1.2 },
-  statLabel: { color: colors.textMuted, fontSize: "0.9rem" },
+  statValue: {
+    fontWeight: "bold",
+    color: colors.textDark,
+    lineHeight: 1.2,
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "1rem",
+    },
+  },
+  statLabel: {
+    color: colors.textMuted,
+    fontSize: "0.9rem",
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.8rem",
+    },
+  },
   bottomCard: {
     marginTop: theme.spacing(4),
     padding: theme.spacing(3),
     borderRadius: "12px",
     boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
     backgroundColor: colors.cardBg,
+    [theme.breakpoints.down("xs")]: {
+      marginTop: theme.spacing(2),
+      padding: theme.spacing(1.5),
+      borderRadius: "10px",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+    },
   },
-  chartContainer: { height: "350px" },
+  chartContainer: {
+    height: "350px",
+    [theme.breakpoints.down("xs")]: {
+      height: "220px",
+    },
+  },
   sectionTitle: {
     fontWeight: 600,
     color: colors.textDark,
     marginBottom: theme.spacing(2),
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "1rem",
+      marginBottom: theme.spacing(1),
+    },
   },
-  quickActionsContainer: { marginTop: theme.spacing(4) },
+  quickActionsContainer: {
+    marginTop: theme.spacing(4),
+    [theme.breakpoints.down("xs")]: {
+      marginTop: theme.spacing(2),
+    },
+  },
   buttonPrimary: {
     backgroundColor: colors.primary,
     color: "#fff",
     fontWeight: "bold",
     borderRadius: "8px",
     "&:hover": { backgroundColor: colors.primaryHover },
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.85rem",
+      padding: theme.spacing(1, 2),
+    },
   },
   buttonSecondary: {
     color: colors.primary,
     borderColor: colors.primary,
     fontWeight: "bold",
     borderRadius: "8px",
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.85rem",
+      padding: theme.spacing(1, 2),
+    },
   },
-  statusChip: { fontWeight: "bold", fontSize: "0.75rem", color: "#fff" },
+  statusChip: {
+    fontWeight: "bold",
+    fontSize: "0.75rem",
+    color: "#fff",
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.7rem",
+      padding: theme.spacing(0.5, 1),
+    },
+  },
 }));
 
 const AdminDashboardPage = () => {

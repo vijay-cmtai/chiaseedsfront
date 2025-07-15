@@ -1,5 +1,3 @@
-// src/pages/user/AddressPage.js (FINAL REDESIGNED CODE)
-
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -27,6 +25,7 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  Paper,
 } from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
 import HomeIcon from "@material-ui/icons/Home";
@@ -35,7 +34,7 @@ import EditIcon from "@material-ui/icons/Edit";
 import DeleteIcon from "@material-ui/icons/Delete";
 import CloseIcon from "@material-ui/icons/Close";
 
-// --- PROFESSIONAL COLOR THEME (from your layout) ---
+// --- PROFESSIONAL COLOR THEME ---
 const colors = {
   background: "#fdfaf6",
   paper: "#ffffff",
@@ -49,9 +48,12 @@ const colors = {
 
 const useStyles = makeStyles((theme) => ({
   pageContainer: {
-    padding: theme.spacing(4),
+    padding: theme.spacing(2),
     backgroundColor: colors.background,
     minHeight: "100vh",
+    [theme.breakpoints.up("sm")]: {
+      padding: theme.spacing(4),
+    },
   },
   headerContainer: {
     display: "flex",
@@ -62,6 +64,9 @@ const useStyles = makeStyles((theme) => ({
   pageTitle: {
     fontWeight: "bold",
     color: colors.primaryText,
+    [theme.breakpoints.down("sm")]: {
+      fontSize: "1.5rem",
+    },
   },
   addressCard: {
     height: "100%",
@@ -73,6 +78,9 @@ const useStyles = makeStyles((theme) => ({
     "&:hover": {
       transform: "translateY(-4px)",
       boxShadow: theme.shadows[4],
+    },
+    [theme.breakpoints.down("sm")]: {
+      minHeight: "200px",
     },
   },
   defaultCard: {
@@ -94,35 +102,23 @@ const useStyles = makeStyles((theme) => ({
     gap: theme.spacing(1),
     fontWeight: 600,
     color: colors.primaryText,
+    [theme.breakpoints.down("sm")]: {
+      fontSize: "0.9rem",
+    },
   },
   defaultChip: {
     backgroundColor: colors.primary,
     color: "white",
     fontWeight: "bold",
     height: "24px",
+    [theme.breakpoints.down("sm")]: {
+      fontSize: "0.7rem",
+    },
   },
   cardActions: {
     display: "flex",
     justifyContent: "flex-end",
     padding: theme.spacing(0.5, 1),
-  },
-  addAddressCard: {
-    height: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    textAlign: "center",
-    cursor: "pointer",
-    border: `2px dashed ${colors.secondaryText}`,
-    backgroundColor: "transparent",
-    boxShadow: "none",
-    transition: "background-color 0.3s, border-color 0.3s",
-    minHeight: "200px",
-    "&:hover": {
-      backgroundColor: theme.palette.grey[50],
-      borderColor: colors.primary,
-      color: colors.primary,
-    },
   },
   modal: {
     display: "flex",
@@ -137,6 +133,10 @@ const useStyles = makeStyles((theme) => ({
     outline: "none",
     width: "100%",
     maxWidth: "500px",
+    [theme.breakpoints.down("sm")]: {
+      maxWidth: "90%",
+      padding: theme.spacing(1, 2, 2),
+    },
   },
   modalHeader: {
     display: "flex",
@@ -150,6 +150,24 @@ const useStyles = makeStyles((theme) => ({
     "&:hover": {
       backgroundColor: colors.primaryText,
     },
+    [theme.breakpoints.down("sm")]: {
+      padding: theme.spacing(1, 2),
+      fontSize: "0.875rem",
+    },
+  },
+  notification: {
+    position: "fixed",
+    bottom: theme.spacing(2),
+    left: "50%",
+    transform: "translateX(-50%)",
+    padding: theme.spacing(1.5, 3),
+    backgroundColor: (props) =>
+      props.severity === "error" ? colors.error : colors.primary,
+    color: "white",
+    borderRadius: theme.shape.borderRadius,
+    fontWeight: 500,
+    zIndex: 1000,
+    display: (props) => (props.open ? "block" : "none"),
   },
 }));
 
@@ -165,15 +183,35 @@ const AddressPage = () => {
 
   const [openModal, setOpenModal] = useState(false);
   const [currentAddress, setCurrentAddress] = useState(null);
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
 
   useEffect(() => {
     dispatch(getAddresses());
   }, [dispatch]);
 
+  useEffect(() => {
+    console.log("Addresses from Redux:", addresses); // Debug log
+    if (message) {
+      setNotification({
+        open: true,
+        message: message,
+        severity: status === "failed" ? "error" : "success",
+      });
+      const timer = setTimeout(() => {
+        setNotification({ ...notification, open: false });
+      }, 5000); // Auto close after 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [message, status]);
+
   const handleOpenModal = (address = null) => {
     setCurrentAddress(
       address || {
-        name: "",
+        fullName: "",
         phone: "",
         type: "Home",
         street: "",
@@ -204,11 +242,31 @@ const AddressPage = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submitting Address:", currentAddress); // Debug log
+
+    // Client-side validation
+    if (
+      !currentAddress.fullName ||
+      !currentAddress.phone ||
+      !currentAddress.street ||
+      !currentAddress.city ||
+      !currentAddress.state ||
+      !currentAddress.postalCode
+    ) {
+      setNotification({
+        open: true,
+        message: "Please fill all required fields.",
+        severity: "error",
+      });
+      return;
+    }
+
     if (currentAddress._id) {
       await dispatch(updateAddress(currentAddress));
     } else {
       await dispatch(addAddress(currentAddress));
     }
+    dispatch(getAddresses()); // Refresh address list
     handleCloseModal();
   };
 
@@ -240,11 +298,13 @@ const AddressPage = () => {
           Add New Address
         </Button>
       </Box>
-      <Grid container spacing={3}>
+      <Grid container spacing={2}>
         {addresses.map((addr) => (
           <Grid item xs={12} sm={6} md={4} key={addr._id}>
             <Card
-              className={`${classes.addressCard} ${addr.isDefault ? classes.defaultCard : ""}`}
+              className={`${classes.addressCard} ${
+                addr.isDefault ? classes.defaultCard : ""
+              }`}
             >
               <CardContent className={classes.cardContent}>
                 <Box className={classes.cardHeader}>
@@ -263,7 +323,8 @@ const AddressPage = () => {
                 <Divider style={{ marginBottom: "12px" }} />
                 <Box>
                   <Typography variant="body1" style={{ fontWeight: 500 }}>
-                    {addr.name}
+                    {addr.fullName || "No Name"}{" "}
+                    {/* Fallback if fullName is missing */}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
                     {addr.street}, {addr.city}, {addr.state} - {addr.postalCode}
@@ -273,7 +334,7 @@ const AddressPage = () => {
                     color="textSecondary"
                     style={{ marginTop: "4px" }}
                   >
-                    Phone: {addr.phone}
+                    Phone: {addr.phone || "N/A"}
                   </Typography>
                 </Box>
               </CardContent>
@@ -292,7 +353,6 @@ const AddressPage = () => {
             </Card>
           </Grid>
         ))}
-        {/* "Add New" button card ko hata diya gaya hai, upar ek dedicated button hai */}
       </Grid>
 
       <Modal
@@ -316,10 +376,10 @@ const AddressPage = () => {
             <Grid container spacing={2} style={{ marginTop: "8px" }}>
               <Grid item xs={12}>
                 <TextField
-                  name="name"
+                  name="fullName"
                   fullWidth
                   label="Full Name"
-                  value={currentAddress?.name || ""}
+                  value={currentAddress?.fullName || ""}
                   onChange={handleInputChange}
                   variant="outlined"
                   required
@@ -419,6 +479,14 @@ const AddressPage = () => {
               </Grid>
             </Grid>
           </form>
+          <Paper
+            className={classes.notification}
+            elevation={6}
+            severity={notification.severity}
+            open={notification.open}
+          >
+            <Typography variant="body2">{notification.message}</Typography>
+          </Paper>
         </div>
       </Modal>
     </div>

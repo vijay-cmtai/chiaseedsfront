@@ -1,9 +1,9 @@
-// src/features/admin/adminSlice.js (Corrected Code)
-
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import adminService from "./adminAPI.js";
+import trackingService from "../tracking/trackingAPI.js"; // ✅ Correct
 import { logout } from "../auth/authSlice.js";
 
+// ==== Initial State ====
 const initialState = {
   stats: {},
   salesOverview: [],
@@ -17,21 +17,22 @@ const initialState = {
   message: "",
 };
 
-const createApiThunk = (name, apiCall) => {
-  return createAsyncThunk(`admin/${name}`, async (arg, thunkAPI) => {
+// ==== Reusable Async Thunk Creator ====
+const createApiThunk = (name, apiCall) =>
+  createAsyncThunk(`admin/${name}`, async (arg, thunkAPI) => {
     try {
       return await apiCall(arg);
     } catch (error) {
       const message =
-        error.response?.data?.message || error.message || `Failed: ${name}`;
+        error?.response?.data?.message || error.message || `Failed to ${name}`;
       if (error.response?.status === 401) {
         thunkAPI.dispatch(logout());
       }
       return thunkAPI.rejectWithValue(message);
     }
   });
-};
 
+// ==== Admin Async Actions ====
 export const getAdminDashboardStats = createApiThunk(
   "getAdminDashboardStats",
   adminService.getAdminDashboardStats
@@ -83,6 +84,13 @@ export const updateOrderStatus = createApiThunk(
   adminService.updateOrderStatus
 );
 
+// ✅ FIXED: Shipment creation now uses trackingService API
+export const createShipmentForOrder = createApiThunk(
+  "createShipmentForOrder",
+  (orderId) => trackingService.createShipmentForOrder(orderId)
+);
+
+// ==== Slice ====
 export const adminSlice = createSlice({
   name: "admin",
   initialState,
@@ -113,9 +121,7 @@ export const adminSlice = createSlice({
         if (index !== -1) state.products[index] = action.payload;
       })
       .addCase(deleteProduct.fulfilled, (state, action) => {
-        state.products = state.products.filter(
-          (p) => p._id !== action.meta.arg
-        );
+        state.products = state.products.filter((p) => p._id !== action.payload);
       })
       .addCase(getAllUsers.fulfilled, (state, action) => {
         state.users = action.payload;
@@ -127,7 +133,7 @@ export const adminSlice = createSlice({
         if (index !== -1) state.users[index] = action.payload;
       })
       .addCase(deleteUser.fulfilled, (state, action) => {
-        state.users = state.users.filter((u) => u._id !== action.meta.arg);
+        state.users = state.users.filter((u) => u._id !== action.payload);
       })
       .addCase(getUserDetails.fulfilled, (state, action) => {
         state.selectedUser = action.payload;
@@ -141,15 +147,23 @@ export const adminSlice = createSlice({
       .addCase(getRecentAdminOrders.fulfilled, (state, action) => {
         state.recentOrders = action.payload;
       })
-      // === THE CHANGE IS HERE ===
       .addCase(updateOrderStatus.fulfilled, (state, action) => {
-        // We use .map to create a new array.
-        // This is a more robust way to ensure the state is seen as "updated".
-        state.orders = state.orders.map((order) =>
-          order._id === action.payload._id ? action.payload : order
+        const index = state.orders.findIndex(
+          (o) => o._id === action.payload._id
         );
+        if (index !== -1) state.orders[index] = action.payload;
+      })
+      .addCase(createShipmentForOrder.fulfilled, (state, action) => {
+        const updatedOrder = action.payload.updatedOrder || action.payload;
+        const index = state.orders.findIndex(
+          (order) => order._id === updatedOrder._id
+        );
+        if (index !== -1) {
+          state.orders[index] = updatedOrder;
+        }
       })
       .addCase(logout.fulfilled, () => initialState)
+      // === Generic Matchers ===
       .addMatcher(
         (action) => action.type.endsWith("/pending"),
         (state) => {

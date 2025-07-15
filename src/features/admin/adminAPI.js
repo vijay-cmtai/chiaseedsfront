@@ -1,24 +1,17 @@
-// src/features/admin/adminAPI.js
-
 import axios from "axios";
 
-// Backend URL ko environment variable se lein, ya local fallback use karein
 const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 
-// Admin-specific API instance banayein
 const api = axios.create({
   baseURL: `${BACKEND_URL}/api/v1/admin`,
   withCredentials: true,
 });
 
-// Interceptor: Har request ke saath authentication token bhejne ke liye
 api.interceptors.request.use((config) => {
-  // Local storage se user data nikalein
   const userString = localStorage.getItem("user");
   if (userString) {
     const user = JSON.parse(userString);
-    // Agar user aur accessToken hai, to Authorization header set karein
     if (user?.accessToken) {
       config.headers.Authorization = `Bearer ${user.accessToken}`;
     }
@@ -26,7 +19,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// --- Dashboard & Stats ---
 const getAdminDashboardStats = async () => {
   const response = await api.get("/dashboard");
   return response.data.data;
@@ -37,10 +29,8 @@ const getSalesOverview = async () => {
   return response.data.data;
 };
 
-// --- Product Management ---
 const getAllProducts = async () => {
   const response = await api.get("/products");
-  console.log("This is all product", response.data.data);
   return response.data.data;
 };
 
@@ -58,14 +48,12 @@ const updateProduct = async (productData) => {
 };
 
 const deleteProduct = async (productId) => {
-  const response = await api.delete(`/products/${productId}`);
-  return response.data.data;
+  await api.delete(`/products/${productId}`);
+  return productId;
 };
 
-// --- User Management ---
 const getAllUsers = async () => {
   const response = await api.get("/users");
-  console.log("this is users", response.data.data);
   return response.data.data;
 };
 
@@ -76,8 +64,8 @@ const updateUser = async (userData) => {
 };
 
 const deleteUser = async (userId) => {
-  const response = await api.delete(`/users/${userId}`);
-  return response.data.data; // Backend se confirmation ya updated list expect kar rahe hain
+  await api.delete(`/users/${userId}`);
+  return userId;
 };
 
 const getUserDetails = async (userId) => {
@@ -90,7 +78,6 @@ const getUserOrders = async (userId) => {
   return response.data.data;
 };
 
-// --- Order Management ---
 const getAllAdminOrders = async () => {
   const response = await api.get("/orders/all");
   return response.data.data;
@@ -106,7 +93,12 @@ const updateOrderStatus = async ({ orderId, status }) => {
   return response.data.data;
 };
 
-// Sabhi functions ko ek service object me export karein
+// ✅ Add this shipment creator function
+const createShipmentForOrder = async (orderId) => {
+  const response = await api.post(`/orders/${orderId}/create-shipment`);
+  return response.data.data;
+};
+
 const adminService = {
   getAdminDashboardStats,
   getSalesOverview,
@@ -122,6 +114,7 @@ const adminService = {
   getAllAdminOrders,
   getRecentAdminOrders,
   updateOrderStatus,
+  createShipmentForOrder, // ✅ now it will be callable
 };
 
 export default adminService;

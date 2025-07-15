@@ -1,10 +1,6 @@
-// src/Layout/UserDashboardLayout.js (ALL ERRORS FIXED)
-
-import React from "react";
-// FIX 1: Imports ko sahi library se alag-alag kiya gaya
+import React, { useCallback, useMemo } from "react";
 import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-
 import {
   Drawer,
   List,
@@ -12,13 +8,13 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
-  makeStyles,
   CssBaseline,
   AppBar,
   Toolbar,
   IconButton,
   useTheme,
   useMediaQuery,
+  Box,
 } from "@material-ui/core";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import ShoppingBasketIcon from "@material-ui/icons/ShoppingBasket";
@@ -29,8 +25,12 @@ import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import ShoppingCartIcon from "@material-ui/icons/ShoppingCart";
 import HomeIcon from "@material-ui/icons/Home";
 import MenuIcon from "@material-ui/icons/Menu";
+import { makeStyles } from "@material-ui/core/styles";
 
 import { logout, reset } from "../features/auth/authSlice";
+
+// --- LOGO IMPORT ---
+import Logo from "../images/logo.png";
 
 const colors = {
   primary: "#878fba",
@@ -48,12 +48,36 @@ const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
     fontFamily: "'Poppins', sans-serif",
+    minHeight: "100vh",
   },
+  // --- YAHAN BADLAAV KIYA GAYA HAI ---
+  sidebarHeader: {
+    padding: theme.spacing(2), // Padding kam kiya gaya
+    textAlign: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.15)",
+  },
+  // --- YAHAN BADLAAV KIYA GAYA HAI ---
+  logo: {
+    maxWidth: "100px", // Max width kam kar di gayi hai
+    height: "auto",
+    transition: "transform 0.2s ease-in-out",
+    "&:hover": {
+      transform: "scale(1.05)",
+    },
+  },
+  // --- Baaki styles waise hi hain ---
   appBarMobile: {
     [theme.breakpoints.up("md")]: {
       display: "none",
     },
     backgroundColor: colors.sidebarBg,
+  },
+  title: {
+    flexGrow: 1,
+    fontSize: "1.2rem",
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "1rem",
+    },
   },
   drawer: {
     [theme.breakpoints.up("md")]: {
@@ -65,48 +89,56 @@ const useStyles = makeStyles((theme) => ({
     width: drawerWidth,
     backgroundColor: colors.sidebarBg,
     borderRight: "none",
+    [theme.breakpoints.down("sm")]: {
+      width: "80vw",
+      maxWidth: 300,
+    },
   },
   content: {
     flexGrow: 1,
     padding: theme.spacing(3),
     backgroundColor: colors.contentBg,
-    minHeight: "100vh",
+    [theme.breakpoints.down("xs")]: {
+      padding: theme.spacing(2),
+    },
   },
-  toolbarDense: {
-    minHeight: 48,
-  },
-  sidebarHeader: {
-    padding: theme.spacing(3),
-    textAlign: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.15)",
-  },
-  sidebarHeaderText: {
-    fontSize: "22px",
-    fontWeight: "700",
-    color: colors.sidebarTextActive,
-    letterSpacing: "1.5px",
-    textTransform: "uppercase",
-  },
+  toolbar: theme.mixins.toolbar,
   navList: {
-    padding: theme.spacing(1, 1),
+    padding: theme.spacing(1),
   },
   listItem: {
     margin: theme.spacing(0.5, 1),
     padding: theme.spacing(1.2, 2),
     borderRadius: "8px",
     color: colors.sidebarText,
-    "& .MuiListItemIcon-root": { minWidth: "45px" },
+    "& .MuiListItemIcon-root": {
+      minWidth: 40,
+      color: colors.sidebarText,
+    },
     "&:hover": {
       backgroundColor: colors.sidebarHoverBg,
       color: colors.sidebarTextActive,
+      "& .MuiListItemIcon-root": {
+        color: colors.sidebarTextActive,
+      },
+    },
+    [theme.breakpoints.down("xs")]: {
+      padding: theme.spacing(1, 1.5),
     },
   },
   activeLink: {
     backgroundColor: colors.primary,
     color: colors.sidebarTextActive,
     boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-    "& .MuiListItemText-primary": { fontWeight: 500 },
-    "&:hover": { backgroundColor: colors.primaryHover },
+    "& .MuiListItemText-primary": {
+      fontWeight: 500,
+    },
+    "& .MuiListItemIcon-root": {
+      color: colors.sidebarTextActive,
+    },
+    "&:hover": {
+      backgroundColor: colors.primaryHover,
+    },
   },
   sidebarFooter: {
     marginTop: "auto",
@@ -120,38 +152,40 @@ const UserDashboardLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
-  // Hum abhi naam nahi dikha rahe, isliye useSelector ko comment kar sakte hain ya rakhe rehne de
-  // const { user } = useSelector((state) => state.auth);
-
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { user } = useSelector((state) => state.auth);
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     dispatch(logout());
     dispatch(reset());
     navigate("/login");
-  };
+  }, [dispatch, navigate]);
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  const handleDrawerToggle = useCallback(() => {
+    setMobileOpen((prev) => !prev);
+  }, []);
 
-  const userNavItems = [
-    { text: "Dashboard", to: "/user/dashboard", icon: <DashboardIcon /> },
-    { text: "My Orders", to: "/user/orders", icon: <ShoppingBasketIcon /> },
-    { text: "My Cart", to: "/user/cart", icon: <ShoppingCartIcon /> },
-    { text: "Wishlist", to: "/user/wishlist", icon: <FavoriteIcon /> },
-    { text: "Profile", to: "/user/profile", icon: <AccountCircleIcon /> },
-    { text: "Address", to: "/user/address", icon: <LocationOnIcon /> },
-  ];
+  const userNavItems = useMemo(
+    () => [
+      { text: "Dashboard", to: "/user/dashboard", icon: <DashboardIcon /> },
+      { text: "My Orders", to: "/user/orders", icon: <ShoppingBasketIcon /> },
+      { text: "My Cart", to: "/user/cart", icon: <ShoppingCartIcon /> },
+      { text: "Wishlist", to: "/user/wishlist", icon: <FavoriteIcon /> },
+      { text: "Profile", to: "/user/profile", icon: <AccountCircleIcon /> },
+      { text: "Address", to: "/user/address", icon: <LocationOnIcon /> },
+    ],
+    []
+  );
 
   const drawerContent = (
-    <div>
+    <Box display="flex" flexDirection="column" height="100%">
       <div className={classes.sidebarHeader}>
-        <Typography variant="h5" className={classes.sidebarHeaderText}>
-          User Panel
-        </Typography>
+        <Link to="/">
+          <img src={Logo} alt="Company Logo" className={classes.logo} />
+        </Link>
       </div>
+
       <List className={classes.navList}>
         {userNavItems.map((item) => (
           <ListItem
@@ -164,7 +198,8 @@ const UserDashboardLayout = () => {
                 ? `${classes.listItem} ${classes.activeLink}`
                 : classes.listItem
             }
-            onClick={isMobile ? handleDrawerToggle : null}
+            onClick={isMobile ? handleDrawerToggle : undefined}
+            aria-label={item.text}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
@@ -172,30 +207,38 @@ const UserDashboardLayout = () => {
         ))}
       </List>
       <div className={classes.sidebarFooter}>
-        <ListItem button component={Link} to="/" className={classes.listItem}>
+        <ListItem
+          button
+          component={Link}
+          to="/"
+          className={classes.listItem}
+          aria-label="Back to Home"
+        >
           <ListItemIcon>
-            {" "}
-            <HomeIcon />{" "}
+            <HomeIcon />
           </ListItemIcon>
           <ListItemText primary="Back to Home" />
         </ListItem>
-        <ListItem button onClick={handleLogout} className={classes.listItem}>
+        <ListItem
+          button
+          onClick={handleLogout}
+          className={classes.listItem}
+          aria-label="Sign Out"
+        >
           <ListItemIcon>
-            {" "}
-            <ExitToAppIcon />{" "}
+            <ExitToAppIcon />
           </ListItemIcon>
           <ListItemText primary="Sign Out" />
         </ListItem>
       </div>
-    </div>
+    </Box>
   );
 
   return (
     <div className={classes.root}>
       <CssBaseline />
-
       <AppBar position="fixed" className={classes.appBarMobile}>
-        <Toolbar variant="dense">
+        <Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -204,9 +247,11 @@ const UserDashboardLayout = () => {
           >
             <MenuIcon />
           </IconButton>
+          <Typography variant="h6" noWrap className={classes.title}>
+            Hello, {user?.name?.split(" ")[0] ?? "Guest"}!
+          </Typography>
         </Toolbar>
       </AppBar>
-
       <nav className={classes.drawer} aria-label="user navigation">
         {isMobile ? (
           <Drawer
@@ -220,7 +265,6 @@ const UserDashboardLayout = () => {
           </Drawer>
         ) : (
           <Drawer
-            // FIX 2: 'a' ki jagah 'classes' kiya gaya
             classes={{ paper: classes.drawerPaper }}
             variant="permanent"
             open
@@ -229,13 +273,12 @@ const UserDashboardLayout = () => {
           </Drawer>
         )}
       </nav>
-
       <main className={classes.content}>
-        {isMobile && <div className={classes.toolbarDense} />}
+        {isMobile && <div className={classes.toolbar} />}
         <Outlet />
       </main>
     </div>
   );
 };
 
-export default UserDashboardLayout;
+export default React.memo(UserDashboardLayout);

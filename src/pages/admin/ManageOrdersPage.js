@@ -1,439 +1,241 @@
-import React, { useState, useEffect, useMemo, Fragment } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  getAllAdminOrders,
-  updateOrderStatus,
-} from "../../features/admin/adminSlice";
-
-// --- Material-UI Imports ---
-import { makeStyles } from "@material-ui/core/styles";
-import {
-  Typography,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  IconButton,
-  Card,
+  Paper,
+  Typography,
   Box,
-  Button,
-  TextField,
-  InputAdornment,
   Chip,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Grid,
-  Divider,
   CircularProgress,
+  IconButton,
+  Collapse,
+  Tooltip,
 } from "@material-ui/core";
-import VisibilityIcon from "@material-ui/icons/Visibility";
-import SearchIcon from "@material-ui/icons/Search";
+import { makeStyles } from "@material-ui/core/styles";
+import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
+import AutorenewIcon from "@material-ui/icons/Autorenew";
 
-// --- Styles ---
-const colors = {
-  primary: "#a96e4f",
-  primaryHover: "#8e5a3e",
-  textDark: "#2c3e50",
-  textMuted: "#667280",
-  cardBg: "#ffffff",
-  borderColor: "#e0e0e0",
-  lightBg: "#f9f7f3",
-  green: "#27ae60",
-  lightGreen: "rgba(39, 174, 96, 0.1)",
-  blue: "#3498db",
-  lightBlue: "rgba(52, 152, 219, 0.1)",
-  orange: "#f39c12",
-  lightOrange: "rgba(243, 156, 18, 0.1)",
-  red: "#c0392b",
-  lightRed: "rgba(192, 57, 43, 0.1)",
-  purple: "#8e44ad",
-  lightPurple: "rgba(142, 68, 173, 0.1)",
-};
+import OrderTracker from "../../components/OrderTracker";
+import {
+  getAllAdminOrders,
+  createShipmentForOrder,
+  resetAdminStatus,
+} from "../../features/admin/adminSlice";
+
 const useStyles = makeStyles((theme) => ({
-  headerContainer: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: theme.spacing(4),
+  root: { padding: theme.spacing(3), backgroundColor: "#f9f9f9" },
+  header: { marginBottom: theme.spacing(3), fontWeight: "bold" },
+  tableContainer: {
+    maxHeight: "75vh",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
   },
-  pageTitle: { fontWeight: "bold", color: colors.textDark },
-  contentCard: {
-    borderRadius: "12px",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
-    backgroundColor: colors.cardBg,
+  alertBox: {
+    padding: theme.spacing(2),
+    marginBottom: theme.spacing(3),
+    backgroundColor: "#fffbe6",
+    color: "#856404",
+    borderLeft: `5px solid #ffc107`,
   },
-  toolbar: {
-    padding: theme.spacing(2, 3),
-    display: "flex",
-    gap: theme.spacing(2),
-    alignItems: "center",
-    borderBottom: `1px solid ${colors.borderColor}`,
-  },
-  tableHead: {
-    backgroundColor: colors.lightBg,
-    "& .MuiTableCell-head": {
-      fontWeight: "bold",
-      color: colors.textDark,
-      borderBottom: "none",
-    },
-  },
-  tableRow: {
-    "& .MuiTableCell-root": { borderBottom: `1px solid ${colors.borderColor}` },
-    "&:last-child .MuiTableCell-root": { borderBottom: "none" },
-    "&:hover": { backgroundColor: colors.lightBg },
-  },
-  orderId: {
-    fontWeight: 500,
-    color: colors.primary,
-    cursor: "pointer",
-    "&:hover": { textDecoration: "underline" },
+  errorBox: {
+    padding: theme.spacing(2),
+    backgroundColor: "#f8d7da",
+    color: "#721c24",
+    borderLeft: "5px solid #dc3545",
   },
   chip: {
-    borderRadius: "16px",
     fontWeight: "bold",
-    height: "26px",
-    fontSize: "0.8rem",
     textTransform: "capitalize",
+    borderRadius: "16px",
+    color: "#fff",
   },
-  statusCompleted: { backgroundColor: colors.lightGreen, color: colors.green },
-  statusShipped: { backgroundColor: colors.lightBlue, color: colors.blue },
-  statusPending: { backgroundColor: colors.lightOrange, color: colors.orange },
-  statusProcessing: {
-    backgroundColor: colors.lightPurple,
-    color: colors.purple,
+  tableHeaderCell: {
+    fontWeight: "bold",
+    backgroundColor: theme.palette.grey[200],
   },
-  statusCancelled: { backgroundColor: colors.lightRed, color: colors.red },
-  filterSelect: {
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: colors.primary,
-    },
+  failedShipmentRow: { backgroundColor: "rgba(255, 235, 238, 0.6)" },
+  collapsibleCell: { padding: 0 },
+  detailsBox: {
+    padding: theme.spacing(2),
+    backgroundColor: theme.palette.grey[50],
   },
-  dialogTitle: { color: colors.textDark, fontWeight: "bold" },
 }));
 
-const getStatusChipClass = (status, classes) => {
-  const statusLower = status?.toLowerCase();
-  switch (statusLower) {
-    case "completed":
-      return classes.statusCompleted;
+const getStatusColor = (status) => {
+  switch (status?.toLowerCase()) {
     case "shipped":
-      return classes.statusShipped;
+      return "#17a2b8";
+    case "delivered":
+      return "#28a745";
+    case "paid":
+      return "#ffc107";
     case "processing":
-      return classes.statusProcessing;
-    case "pending":
-      return classes.statusPending;
+      return "#fd7e14";
     case "cancelled":
-      return classes.statusCancelled;
+      return "#dc3545";
     default:
-      return "";
+      return "#6c757d";
   }
+};
+
+const Row = ({ order }) => {
+  const classes = useStyles();
+  const dispatch = useDispatch();
+  const [open, setOpen] = useState(true);
+  const isFailedShipment =
+    order.orderStatus === "Paid" && !order.shipmentDetails?.trackingNumber;
+  const { status: actionStatus } = useSelector((state) => state.admin);
+
+  const handleRetryShipment = () => {
+    dispatch(createShipmentForOrder(order._id)); // ✅ Corrected
+  };
+
+  return (
+    <>
+      <TableRow className={isFailedShipment ? classes.failedShipmentRow : ""}>
+        <TableCell>
+          <IconButton onClick={() => setOpen(!open)}>
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+        <TableCell>#{order._id.slice(-6).toUpperCase()}</TableCell>
+        <TableCell>
+          {order.shippingAddress?.fullName || order.user?.fullName || "N/A"}
+        </TableCell>
+        <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+        <TableCell>₹{order.totalPrice.toLocaleString()}</TableCell>
+        <TableCell>
+          <Chip
+            label={order.orderStatus}
+            size="small"
+            className={classes.chip}
+            style={{ backgroundColor: getStatusColor(order.orderStatus) }}
+          />
+        </TableCell>
+      </TableRow>
+
+      <TableRow>
+        <TableCell className={classes.collapsibleCell} colSpan={6}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box className={classes.detailsBox}>
+              <Typography variant="h6" gutterBottom>
+                Order Details
+              </Typography>
+
+              {isFailedShipment && (
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  bgcolor="#ffebee"
+                  p={1}
+                  borderRadius={1}
+                  mb={2}
+                >
+                  <Typography
+                    variant="body2"
+                    color="error"
+                    style={{ flexGrow: 1 }}
+                  >
+                    Automatic shipment failed.
+                  </Typography>
+                  <Tooltip title="Retry Shipment Creation">
+                    <IconButton
+                      onClick={handleRetryShipment}
+                      disabled={actionStatus === "loading"}
+                    >
+                      {actionStatus === "loading" ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <AutorenewIcon color="primary" />
+                      )}
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              )}
+
+              <OrderTracker order={order} />
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </>
+  );
 };
 
 const ManageOrdersPage = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const { orders, status: loadingStatus } = useSelector((state) => state.admin);
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [viewingOrder, setViewingOrder] = useState(null);
-  const [newStatus, setNewStatus] = useState("Pending");
+  const { orders = [], status, message } = useSelector((state) => state.admin);
 
   useEffect(() => {
     dispatch(getAllAdminOrders());
+    return () => dispatch(resetAdminStatus());
   }, [dispatch]);
 
-  const filteredOrders = useMemo(() => {
-    if (!Array.isArray(orders)) return [];
-    return orders.filter((order) => {
-      const customerName = order.user?.name || "";
-      const orderId = order._id || "";
-      const orderStatus = order.orderStatus || "";
+  const sortedOrders = [...orders].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
 
-      const searchMatch =
-        orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customerName.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const statusMatch =
-        statusFilter === "All" ||
-        orderStatus.toLowerCase() === statusFilter.toLowerCase();
-
-      return searchMatch && statusMatch;
-    });
-  }, [orders, searchTerm, statusFilter]);
-
-  const handleOpenViewDialog = (order) => {
-    setViewingOrder(order);
-    const validStatuses = [
-      "Pending",
-      "Processing",
-      "Shipped",
-      "Completed",
-      "Cancelled",
-    ];
-    const currentStatus = order.orderStatus;
-    setNewStatus(
-      validStatuses.includes(currentStatus) ? currentStatus : "Pending"
+  if (status === "loading" && orders.length === 0) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="80vh"
+      >
+        <CircularProgress />
+      </Box>
     );
-    setDialogOpen(true);
-  };
+  }
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-    setViewingOrder(null);
-  };
-
-  const handleUpdateStatus = async () => {
-    if (!viewingOrder || !newStatus) return;
-    const resultAction = await dispatch(
-      updateOrderStatus({ orderId: viewingOrder._id, status: newStatus })
+  if (status === "failed") {
+    return (
+      <Box p={3}>
+        <Paper className={classes.errorBox}>
+          <Typography variant="h6">Error</Typography>
+          <Typography>{message || "Failed to load orders."}</Typography>
+        </Paper>
+      </Box>
     );
-    if (updateOrderStatus.fulfilled.match(resultAction)) {
-      handleCloseDialog();
-    }
-  };
+  }
 
   return (
-    <div>
-      <Box className={classes.headerContainer}>
-        <Typography variant="h4" className={classes.pageTitle}>
-          Manage Orders
-        </Typography>
-      </Box>
+    <div className={classes.root}>
+      <Typography variant="h4" className={classes.header}>
+        Manage All Orders
+      </Typography>
 
-      <Card className={classes.contentCard}>
-        <Box className={classes.toolbar}>
-          <TextField
-            style={{ flexGrow: 1 }}
-            variant="standard"
-            placeholder="Search by Order ID or Customer Name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-              disableUnderline: true,
-            }}
-          />
-          <FormControl
-            variant="outlined"
-            size="small"
-            style={{ minWidth: 150 }}
-          >
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              label="Status"
-              className={classes.filterSelect}
-            >
-              <MenuItem value="All">All Statuses</MenuItem>
-              <MenuItem value="Pending">Pending</MenuItem>
-              <MenuItem value="Processing">Processing</MenuItem>
-              <MenuItem value="Shipped">Shipped</MenuItem>
-              <MenuItem value="Completed">Completed</MenuItem>
-              <MenuItem value="Cancelled">Cancelled</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-
-        <TableContainer>
-          <Table>
-            <TableHead className={classes.tableHead}>
-              <TableRow>
-                <TableCell>Order ID</TableCell>
-                <TableCell>Customer</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Total</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="center">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loadingStatus === "loading" &&
-              (!orders || orders.length === 0) ? (
-                <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    <CircularProgress style={{ color: colors.primary }} />
-                  </TableCell>
-                </TableRow>
-              ) : filteredOrders.length > 0 ? (
-                filteredOrders.map((order) => (
-                  <TableRow key={order._id} className={classes.tableRow}>
-                    <TableCell>
-                      <Typography
-                        onClick={() => handleOpenViewDialog(order)}
-                        variant="body1"
-                        className={classes.orderId}
-                      >
-                        {order._id}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{order.user?.name || "N/A"}</TableCell>
-                    <TableCell>
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>₹{order.totalPrice.toLocaleString()}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={order.orderStatus} // Use orderStatus
-                        className={`${classes.chip} ${getStatusChipClass(order.orderStatus, classes)}`}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        onClick={() => handleOpenViewDialog(order)}
-                        size="small"
-                        style={{ color: colors.primary }}
-                      >
-                        <VisibilityIcon fontSize="small" />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    <Typography>No orders found.</Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Card>
-
-      {viewingOrder && (
-        <Dialog
-          open={dialogOpen}
-          onClose={handleCloseDialog}
-          fullWidth
-          maxWidth="sm"
-        >
-          <DialogTitle>
-            <Typography className={classes.dialogTitle}>
-              Order Details: {viewingOrder._id}
-            </Typography>
-          </DialogTitle>
-          <DialogContent dividers>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} sm={6}>
-                <Typography color="textSecondary">Customer:</Typography>
-                <Typography>
-                  <strong>{viewingOrder.user?.name || "N/A"}</strong>
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography color="textSecondary">Order Date:</Typography>
-                <Typography>
-                  <strong>
-                    {new Date(viewingOrder.createdAt).toLocaleString()}
-                  </strong>
-                </Typography>
-              </Grid>
-
-              {/* === THIS IS THE CORRECTED PART === */}
-              <Grid item xs={12}>
-                <Typography color="textSecondary">Shipping Address:</Typography>
-                <Typography>
-                  <strong>
-                    {viewingOrder.shippingAddress
-                      ? `${viewingOrder.shippingAddress.street}, ${viewingOrder.shippingAddress.city}, ${viewingOrder.shippingAddress.state} - ${viewingOrder.shippingAddress.postalCode}`
-                      : "Not Available"}
-                  </strong>
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Divider style={{ margin: "16px 0" }} />
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="h6" className={classes.dialogTitle}>
-                  Items
-                </Typography>
-              </Grid>
-              {viewingOrder.orderItems.map((item) => (
-                <Fragment key={item.product}>
-                  <Grid item xs={8}>
-                    <Typography>
-                      {item.name} (Qty: {item.quantity})
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={4}>
-                    <Typography align="right">
-                      <strong>₹{item.price * item.quantity}</strong>
-                    </Typography>
-                  </Grid>
-                </Fragment>
-              ))}
-
-              <Grid item xs={12}>
-                <Divider style={{ margin: "16px 0" }} />
-              </Grid>
-
-              <Grid item xs={8}>
-                <Typography variant="h6">
-                  <strong>Total</strong>
-                </Typography>
-              </Grid>
-              <Grid item xs={4}>
-                <Typography variant="h6" align="right">
-                  <strong>₹{viewingOrder.totalPrice.toLocaleString()}</strong>
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Divider style={{ margin: "16px 0" }} />
-              </Grid>
-
-              <Grid item xs={12}>
-                <FormControl fullWidth variant="outlined">
-                  <InputLabel>Update Status</InputLabel>
-                  <Select
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value)}
-                    label="Update Status"
-                  >
-                    <MenuItem value="Pending">Pending</MenuItem>
-                    <MenuItem value="Processing">Processing</MenuItem>
-                    <MenuItem value="Shipped">Shipped</MenuItem>
-                    <MenuItem value="Completed">Completed</MenuItem>
-                    <MenuItem value="Cancelled">Cancelled</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={handleCloseDialog}
-              style={{ color: colors.textMuted }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleUpdateStatus}
-              style={{ backgroundColor: colors.primary, color: "white" }}
-              disabled={loadingStatus === "loading"}
-            >
-              {loadingStatus === "loading" ? "Saving..." : "Save Changes"}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
+      <TableContainer component={Paper} className={classes.tableContainer}>
+        <Table stickyHeader aria-label="collapsible table">
+          <TableHead>
+            <TableRow>
+              <TableCell />
+              <TableCell className={classes.tableHeaderCell}>
+                Order ID
+              </TableCell>
+              <TableCell className={classes.tableHeaderCell}>
+                Customer
+              </TableCell>
+              <TableCell className={classes.tableHeaderCell}>Date</TableCell>
+              <TableCell className={classes.tableHeaderCell}>Total</TableCell>
+              <TableCell className={classes.tableHeaderCell}>
+                DB Status
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {sortedOrders.map((order) => (
+              <Row key={order._id} order={order} />
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </div>
   );
 };

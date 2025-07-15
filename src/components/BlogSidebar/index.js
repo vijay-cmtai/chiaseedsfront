@@ -2,9 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import blogs from "../../api/blogs";
 
-// Author ki image ke liye ek placeholder istemal kiya gaya hai
-import authorImg from "../../images/team/img-1.jpg";
-
 // --- Color Palette (Aapke theme se match karta hua) ---
 const colors = {
   primaryButton: "#878fba",
@@ -15,7 +12,7 @@ const colors = {
   tagBackground: "rgba(135, 143, 186, 0.15)",
 };
 
-// --- Styles ---
+// --- Styles (Cleaned up) ---
 const styles = {
   sidebarWrapper: {
     padding: "30px",
@@ -35,55 +32,8 @@ const styles = {
     marginBottom: "20px",
     borderBottom: `2px solid ${colors.borderColor}`,
   },
-  // About Widget Styles
-  aboutWidget: {
-    textAlign: "center",
-  },
-  profileImageHolder: {
-    width: "120px",
-    height: "120px",
-    borderRadius: "50%",
-    overflow: "hidden",
-    margin: "0 auto 20px",
-    border: `4px solid ${colors.textLight}`,
-    boxShadow: "0 5px 15px rgba(0, 0, 0, 0.1)",
-  },
-  profileImage: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-  },
-  profileName: {
-    fontSize: "20px",
-    fontWeight: "700",
-    color: colors.textDark,
-    margin: "0 0 10px 0",
-  },
-  profileBio: {
-    fontSize: "15px",
-    color: colors.textDark,
-    lineHeight: "1.6",
-    marginBottom: "20px",
-  },
-  socialList: {
-    listStyle: "none",
-    padding: 0,
-    margin: 0,
-    display: "flex",
-    justifyContent: "center",
-    gap: "12px",
-  },
-  socialLink: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "38px",
-    height: "38px",
-    backgroundColor: colors.tagBackground,
-    color: colors.primaryButton,
-    borderRadius: "50%",
-    transition: "all 0.3s ease",
-  },
+  // --- PROFILE SECTION KE STYLES HATA DIYE GAYE HAIN ---
+
   // Search Widget Styles
   searchContainer: {
     position: "relative",
@@ -118,12 +68,11 @@ const styles = {
     gap: "15px",
     marginBottom: "20px",
   },
-  // === YAHAN BADLAV KIYA GAYA HAI ===
   recentPostImage: {
     width: "70px",
     height: "70px",
     objectFit: "cover",
-    borderRadius: "50%", // Isse image poori tarah gol ho jaayegi
+    borderRadius: "50%",
     flexShrink: 0,
   },
   recentPostTitle: {
@@ -165,6 +114,8 @@ const styles = {
     padding: "30px",
     borderRadius: "15px",
     textAlign: "center",
+    // Last widget ka bottom margin hatane ke liye
+    marginBottom: 0, 
   },
   ctaTitle: {
     color: colors.textLight,
@@ -206,39 +157,8 @@ const BlogSidebar = (props) => {
   return (
     <div className={`col col-lg-4 col-12 ${props.blLeft}`}>
       <div style={styles.sidebarWrapper}>
-        {/* About Widget */}
-        <div style={{ ...styles.widget, ...styles.aboutWidget }}>
-          <div style={styles.profileImageHolder}>
-            <img src={authorImg} alt="Author" style={styles.profileImage} />
-          </div>
-          <h4 style={styles.profileName}>Jenny Watson</h4>
-          <p style={styles.profileBio}>
-            Welcome! I'm a health enthusiast sharing the amazing benefits and
-            delicious recipes for a healthier life with chia.
-          </p>
-          <ul style={styles.socialList}>
-            <li>
-              <Link to="/blog" style={styles.socialLink}>
-                <i className="fab fa-facebook-f"></i>
-              </Link>
-            </li>
-            <li>
-              <Link to="/blog" style={styles.socialLink}>
-                <i className="fab fa-twitter"></i>
-              </Link>
-            </li>
-            <li>
-              <Link to="/blog" style={styles.socialLink}>
-                <i className="fab fa-instagram"></i>
-              </Link>
-            </li>
-            <li>
-              <Link to="/blog" style={styles.socialLink}>
-                <i className="fab fa-pinterest-p"></i>
-              </Link>
-            </li>
-          </ul>
-        </div>
+        
+        {/* --- PROFILE SECTION (ABOUT WIDGET) HATA DIYA GAYA HAI --- */}
 
         {/* Search Widget */}
         <div style={styles.widget}>
@@ -294,7 +214,7 @@ const BlogSidebar = (props) => {
         </div>
 
         {/* CTA Widget */}
-        <div style={styles.ctaWidget}>
+        <div style={{ ...styles.widget, ...styles.ctaWidget }}>
           <h2 style={styles.ctaTitle}>
             How We Can <br /> Help You!
           </h2>

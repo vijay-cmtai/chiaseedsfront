@@ -1,36 +1,50 @@
-// src/pages/CartPage.js (FULLY CORRECTED AND SAFE CODE)
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Box,
   Typography,
   Grid,
-  Card,
-  CardContent,
+  Paper,
   IconButton,
   Button,
+  Card,
+  CardContent,
   CircularProgress,
   Divider,
-  Paper,
   Modal,
   Snackbar,
-  makeStyles,
+  Tooltip,
 } from "@material-ui/core";
 import { Link, useNavigate } from "react-router-dom";
 import DeleteIcon from "@material-ui/icons/Delete";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
-import { unwrapResult } from "@reduxjs/toolkit";
+import ErrorOutlineIcon from "@material-ui/icons/ErrorOutline";
+import { makeStyles } from "@material-ui/core/styles";
 
 import {
   getCart,
   getAddresses,
   removeFromCart,
   updateCartQuantity,
-  createOrder,
   resetUserStatus,
+  clearCart,
 } from "../../features/user/userSlice";
+import {
+  createRazorpayOrder,
+  verifyPayment,
+  resetPaymentStatus,
+} from "../../features/payment/paymentSlice";
+
+const loadRazorpayScript = (src) => {
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 const useStyles = makeStyles((theme) => ({
   pageContainer: {
@@ -42,7 +56,7 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     alignItems: "center",
     padding: theme.spacing(2, 0),
-    flexWrap: "wrap", // For better mobile view
+    flexWrap: "wrap",
   },
   itemImage: {
     width: 100,
@@ -73,6 +87,7 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: "8px",
     width: "100%",
     maxWidth: "500px",
+    outline: "none",
   },
   addressCardSelectable: {
     padding: theme.spacing(2),
@@ -96,6 +111,21 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.shape.borderRadius,
     fontWeight: 500,
   },
+  invalidItemRow: {
+    display: "flex",
+    alignItems: "center",
+    padding: theme.spacing(2),
+    backgroundColor: "#fffbe6",
+    border: `1px solid #ffe58f`,
+    borderRadius: theme.shape.borderRadius,
+    marginBottom: theme.spacing(2),
+  },
+  invalidItemText: {
+    color: "#8a6d3b",
+    flexGrow: 1,
+    marginLeft: theme.spacing(2),
+    fontWeight: 500,
+  },
 }));
 
 const CartPage = () => {
@@ -103,9 +133,20 @@ const CartPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { cart, addresses, status, message } = useSelector(
-    (state) => state.user || {} // Add fallback for initial state
-  );
+  const { user } = useSelector((state) => state.auth);
+  const {
+    cart,
+    addresses,
+    status: userStatus,
+    message: userMessage,
+  } = useSelector((state) => state.user || { cart: [], addresses: [] });
+  const {
+    status: paymentStatus,
+    message: paymentMessage,
+    razorpayOrder,
+    finalOrder,
+  } = useSelector((state) => state.payment || {});
+
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [notification, setNotification] = useState({
@@ -113,101 +154,186 @@ const CartPage = () => {
     msg: "",
     severity: "info",
   });
-
-  const isPlacingOrder = status === "loading" && !message;
+  const isPaymentProcessing = paymentStatus === "loading";
 
   useEffect(() => {
-    dispatch(resetUserStatus());
     dispatch(getCart());
     dispatch(getAddresses());
   }, [dispatch]);
 
   useEffect(() => {
-    if (addresses && addresses.length > 0) {
+    if (addresses && addresses.length > 0 && !selectedAddressId) {
       const defaultAddress = addresses.find((addr) => addr.isDefault);
-      setSelectedAddressId(
-        defaultAddress ? defaultAddress._id : addresses[0]?._id
-      );
+      setSelectedAddressId(defaultAddress?._id || addresses[0]._id);
     }
-  }, [addresses]);
+  }, [addresses, selectedAddressId]);
 
   useEffect(() => {
-    if (status === "failed" && message) {
-      setNotification({ open: true, msg: message, severity: "error" });
+    const errorMsg =
+      userStatus === "failed"
+        ? userMessage
+        : paymentStatus === "failed"
+          ? paymentMessage
+          : null;
+    if (errorMsg) {
+      setNotification({ open: true, msg: errorMsg, severity: "error" });
+      dispatch(resetUserStatus());
+      dispatch(resetPaymentStatus());
     }
-  }, [status, message]);
+  }, [userStatus, userMessage, paymentStatus, paymentMessage, dispatch]);
 
-  const handlePlaceOrder = async () => {
-    if (!selectedAddressId) {
-      setNotification({
-        open: true,
-        msg: "Please select a shipping address.",
-        severity: "warning",
-      });
-      return;
-    }
+  const { validCartItems, invalidCartItems } = useMemo(() => {
+    const valid = [];
+    const invalid = [];
+    (cart || []).forEach((item) => {
+      if (item?.product) valid.push(item);
+      else if (item) invalid.push(item);
+    });
+    return { validCartItems: valid, invalidCartItems: invalid };
+  }, [cart]);
 
-    try {
-      const resultAction = await dispatch(
-        createOrder({ addressId: selectedAddressId })
-      );
-      const newOrder = unwrapResult(resultAction);
-      navigate(`/order-success/${newOrder._id}`);
-    } catch (err) {
-      // Error is already handled by the slice, just log for debugging
-      console.error("Failed to place order:", err);
-    }
-  };
-
-  const handleCloseNotification = (event, reason) => {
-    if (reason === "clickaway") return;
-    setNotification({ ...notification, open: false });
-    dispatch(resetUserStatus());
-  };
-
-  const handleSelectAddress = (addressId) => {
-    setSelectedAddressId(addressId);
-    setIsAddressModalOpen(false);
-  };
-
-  const handleRemoveFromCart = (productId) =>
-    dispatch(removeFromCart(productId));
-
-  const handleQuantityChange = (productId, newQuantity) => {
-    if (newQuantity > 0) {
-      dispatch(updateCartQuantity({ productId, quantity: newQuantity }));
-    }
-  };
-
-  // --- FIX 1: Safe subtotal calculation ---
-  const subtotal = (cart || []).reduce((acc, item) => {
-    // Check if item and item.product both exist before calculating price
-    if (item && item.product) {
-      return acc + item.product.price * item.quantity;
-    }
-    // If product is null, just return the accumulator
-    return acc;
-  }, 0);
-
+  const subtotal = validCartItems.reduce(
+    (acc, item) => acc + item.product.price * item.quantity,
+    0
+  );
   const selectedAddress = addresses?.find(
     (addr) => addr._id === selectedAddressId
   );
 
-  // Filter out invalid cart items before rendering anything
-  const validCartItems = (cart || []).filter((item) => item && item.product);
+  const handleCloseNotification = () =>
+    setNotification({ ...notification, open: false });
+  const handleSelectAddress = (id) => {
+    setSelectedAddressId(id);
+    setIsAddressModalOpen(false);
+  };
+  const handleRemoveFromCart = (cartItemId) =>
+    dispatch(removeFromCart(cartItemId));
+  const handleQuantityChange = (id, qty) => {
+    if (qty > 0) dispatch(updateCartQuantity({ productId: id, quantity: qty }));
+  };
 
-  if (status === "loading" && !cart?.length && !message) {
-    return (
-      <Box textAlign="center" my={10}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const handleProceedToPayment = () => {
+    if (!selectedAddressId) {
+      setNotification({
+        open: true,
+        msg: "Please select a shipping address first.",
+        severity: "warning",
+      });
+      return;
+    }
+    if (invalidCartItems.length > 0) {
+      setNotification({
+        open: true,
+        msg: "Please remove unavailable items to proceed.",
+        severity: "warning",
+      });
+      return;
+    }
+    dispatch(createRazorpayOrder({ addressId: selectedAddressId }));
+  };
+
+  useEffect(() => {
+    if (razorpayOrder) {
+      const displayPaymentModal = async () => {
+        const res = await loadRazorpayScript(
+          "https://checkout.razorpay.com/v1/checkout.js"
+        );
+        if (!res) {
+          setNotification({
+            open: true,
+            msg: "Razorpay SDK failed to load. Are you online?",
+            severity: "error",
+          });
+          return;
+        }
+
+        const currentSelectedAddress = addresses?.find(
+          (addr) => addr._id === razorpayOrder.addressId
+        );
+
+        const options = {
+          key: razorpayOrder.key,
+          amount: razorpayOrder.amount,
+          currency: razorpayOrder.currency,
+          name: "Your Store Name",
+          description: "Payment for your order",
+          order_id: razorpayOrder.orderId,
+          handler: function (response) {
+            dispatch(
+              verifyPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                addressId: razorpayOrder.addressId,
+              })
+            );
+          },
+          prefill: {
+            name: user?.fullName || "Guest User",
+            email: user?.email || "",
+            contact: currentSelectedAddress?.phone || "",
+          },
+          theme: { color: "#3399cc" },
+        };
+
+        try {
+          const paymentObject = new window.Razorpay(options);
+          paymentObject.on("payment.failed", (response) => {
+            setNotification({
+              open: true,
+              msg: `Payment failed: ${response.error.description}`,
+              severity: "error",
+            });
+            dispatch(resetPaymentStatus());
+          });
+          paymentObject.open();
+        } catch (error) {
+          setNotification({
+            open: true,
+            msg: `Razorpay initialization failed: ${error.message}`,
+            severity: "error",
+          });
+        }
+      };
+
+      displayPaymentModal();
+    }
+  }, [razorpayOrder, dispatch, user, addresses]);
+
+  useEffect(() => {
+    if (finalOrder) {
+      dispatch(clearCart());
+      let notificationMsg = "Payment successful! Order confirmed.";
+      let notificationSeverity = "success";
+
+      if (finalOrder.shipmentDetails?.error) {
+        notificationMsg = `Payment successful, but shipment creation failed: ${finalOrder.shipmentDetails.error}. We'll process it soon.`;
+        notificationSeverity = "warning";
+      } else if (finalOrder.order.orderStatus === "Shipped") {
+        notificationMsg = "Payment successful! Order confirmed and shipped.";
+      }
+
+      setNotification({
+        open: true,
+        msg: notificationMsg,
+        severity: notificationSeverity,
+      });
+      navigate(`/order-confirmation/${finalOrder.order._id}`);
+    }
+  }, [finalOrder, navigate, dispatch]);
+
+  useEffect(() => {
+    return () => dispatch(resetPaymentStatus());
+  }, [dispatch]);
 
   const getNotificationColor = (severity) => {
-    if (severity === "error") return "#f44336";
-    if (severity === "warning") return "#ff9800";
-    return "#2196f3";
+    const colors = {
+      error: "#f44336",
+      warning: "#ff9800",
+      success: "#4caf50",
+      info: "#2196f3",
+    };
+    return colors[severity] || colors.info;
   };
 
   return (
@@ -216,12 +342,22 @@ const CartPage = () => {
         Your Shopping Cart
       </Typography>
 
-      {validCartItems.length === 0 ? (
+      {invalidCartItems.length > 0 && (
+        <Paper className={classes.invalidItemRow}>
+          <ErrorOutlineIcon style={{ color: "#f57c00" }} />
+          <Typography className={classes.invalidItemText}>
+            Some items in your cart are no longer available. Please remove them
+            to proceed.
+          </Typography>
+        </Paper>
+      )}
+
+      {!cart || cart.length === 0 ? (
         <Paper style={{ textAlign: "center", padding: "4rem" }}>
           <Typography variant="h6">Your cart is empty.</Typography>
           <Button
             component={Link}
-            to="/shop"
+            to="/"
             variant="contained"
             color="primary"
             style={{ marginTop: "1rem" }}
@@ -233,9 +369,8 @@ const CartPage = () => {
         <Grid container spacing={4}>
           <Grid item xs={12} md={8}>
             <Paper elevation={2} style={{ padding: "1rem 2rem" }}>
-              {/* --- FIX 2: Map over the pre-filtered valid items --- */}
-              {validCartItems.map(({ product, quantity }, index) => (
-                <React.Fragment key={product._id}>
+              {validCartItems.map(({ _id, product, quantity }, index) => (
+                <React.Fragment key={_id}>
                   <div className={classes.cartItemRow}>
                     <img
                       src={product.mainImage}
@@ -275,13 +410,44 @@ const CartPage = () => {
                         ₹{(product.price * quantity).toLocaleString()}
                       </Typography>
                     </Box>
-                    <IconButton
-                      onClick={() => handleRemoveFromCart(product._id)}
-                    >
+                    <IconButton onClick={() => handleRemoveFromCart(_id)}>
                       <DeleteIcon />
                     </IconButton>
                   </div>
                   {index < validCartItems.length - 1 && <Divider />}
+                </React.Fragment>
+              ))}
+              {invalidCartItems.map((item, index) => (
+                <React.Fragment key={item._id || index}>
+                  <div className={classes.cartItemRow} style={{ opacity: 0.6 }}>
+                    <Box
+                      className={classes.itemImage}
+                      style={{
+                        backgroundColor: "#f0f0f0",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Typography color="textSecondary">N/A</Typography>
+                    </Box>
+                    <Box flexGrow={1}>
+                      <Typography variant="h6" color="textSecondary">
+                        Unavailable Product
+                      </Typography>
+                      <Typography variant="body2" color="error">
+                        This item has been removed.
+                      </Typography>
+                    </Box>
+                    <Tooltip title="Remove from cart">
+                      <IconButton
+                        onClick={() => handleRemoveFromCart(item._id)}
+                      >
+                        <DeleteIcon color="error" />
+                      </IconButton>
+                    </Tooltip>
+                  </div>
+                  {index < invalidCartItems.length - 1 && <Divider />}
                 </React.Fragment>
               ))}
             </Paper>
@@ -309,13 +475,16 @@ const CartPage = () => {
                   {selectedAddress ? (
                     <Box mt={1.5}>
                       <Typography variant="body1" style={{ fontWeight: 500 }}>
-                        {selectedAddress.name}
+                        {selectedAddress.fullName || "No Name Provided"}
                       </Typography>
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                      >{`${selectedAddress.street || ""}, ${selectedAddress.city || ""}, ${
+                        selectedAddress.state || ""
+                      } - ${selectedAddress.postalCode || ""}`}</Typography>
                       <Typography variant="body2" color="textSecondary">
-                        {`${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.postalCode}`}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        Phone: {selectedAddress.phone}
+                        Phone: {selectedAddress.phone || "No Phone Provided"}
                       </Typography>
                     </Box>
                   ) : (
@@ -350,16 +519,31 @@ const CartPage = () => {
                     variant="contained"
                     color="primary"
                     fullWidth
-                    disabled={!selectedAddressId || isPlacingOrder}
+                    disabled={
+                      !selectedAddressId ||
+                      isPaymentProcessing ||
+                      invalidCartItems.length > 0
+                    }
                     style={{ padding: "0.75rem 0" }}
-                    onClick={handlePlaceOrder}
+                    onClick={handleProceedToPayment}
                   >
-                    {isPlacingOrder ? (
+                    {isPaymentProcessing ? (
                       <CircularProgress size={24} color="inherit" />
                     ) : (
-                      "Place Order Now"
+                      `Proceed to Pay ₹${subtotal.toLocaleString()}`
                     )}
                   </Button>
+                  {invalidCartItems.length > 0 && (
+                    <Typography
+                      variant="caption"
+                      color="error"
+                      align="center"
+                      display="block"
+                      style={{ marginTop: "8px" }}
+                    >
+                      Please remove unavailable items to continue.
+                    </Typography>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -376,37 +560,40 @@ const CartPage = () => {
           <Typography variant="h5" gutterBottom>
             Select a Shipping Address
           </Typography>
-          <Divider />
-          <Box mt={2} style={{ maxHeight: "60vh", overflowY: "auto" }}>
-            {(addresses || []).map((addr) => (
-              <Paper
-                key={addr._id}
-                variant="outlined"
-                onClick={() => handleSelectAddress(addr._id)}
+          <Divider style={{ marginBottom: "1rem" }} />
+          {addresses && addresses.length > 0 ? (
+            addresses.map((address) => (
+              <Card
+                key={address._id}
+                onClick={() => handleSelectAddress(address._id)}
                 className={`${classes.addressCardSelectable} ${
-                  selectedAddressId === addr._id ? classes.selectedAddress : ""
+                  selectedAddressId === address._id
+                    ? classes.selectedAddress
+                    : ""
                 }`}
               >
                 <Typography variant="body1" style={{ fontWeight: 500 }}>
-                  {addr.name} ({addr.type})
+                  {address.fullName || "No Name Provided"}
                 </Typography>
-                <Typography
-                  variant="body2"
-                  color="textSecondary"
-                >{`${addr.street}, ${addr.city}, ${addr.state} - ${addr.postalCode}`}</Typography>
-              </Paper>
-            ))}
-          </Box>
+                <Typography variant="body2">{`${address.street || ""}, ${
+                  address.city || ""
+                }, ${address.postalCode || ""}`}</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Phone: {address.phone || "No Phone Provided"}
+                </Typography>
+              </Card>
+            ))
+          ) : (
+            <Typography>No addresses found.</Typography>
+          )}
           <Button
             component={Link}
-            to="/user/address"
-            fullWidth
+            to="/user/profile"
             variant="outlined"
             color="primary"
-            startIcon={<AddIcon />}
             style={{ marginTop: "1rem" }}
           >
-            Add a New Address
+            Add New Address
           </Button>
         </div>
       </Modal>
@@ -430,5 +617,4 @@ const CartPage = () => {
     </div>
   );
 };
-
 export default CartPage;

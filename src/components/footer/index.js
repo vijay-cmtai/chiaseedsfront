@@ -100,11 +100,11 @@ const Footer = (props) => {
                       <img src={Logo} alt="ft-logo" /> Chia Seeds
                     </Link>
                   </div>
-                  <p>
+                  {/* <p>
                     Management consulting includes a broad range of activities,
                     and the many firms and their members often define these
                     practices.
-                  </p>
+                  </p> */}
                   <ul>
                     <li>
                       <Link to="/">
@@ -158,23 +158,23 @@ const Footer = (props) => {
                   </div>
                   <ul>
                     <li>
-                      <Link onClick={ClickHandler} to="/project">
-                        Our Projects
+                      <Link onClick={ClickHandler} to="/about">
+                        About
                       </Link>
                     </li>
                     <li>
                       <Link onClick={ClickHandler} to="/shop">
-                        Our Shop
+                        Shop
                       </Link>
                     </li>
                     <li>
-                      <Link onClick={ClickHandler} to="/wishlist">
-                        Wishlist
+                      <Link onClick={ClickHandler} to="/blog">
+                        Blogs
                       </Link>
                     </li>
                     <li>
-                      <Link onClick={ClickHandler} to="/checkout">
-                        Checkout
+                      <Link onClick={ClickHandler} to="/contact">
+                        Contact
                       </Link>
                     </li>
                   </ul>
@@ -216,7 +216,7 @@ const Footer = (props) => {
                 <p className="copyright">
                   Copyright © 2025 Chia Seeds by{" "}
                   <Link onClick={ClickHandler} to="/">
-                    themepresss
+                    chiaseeds
                   </Link>
                   . All Rights Reserved.
                 </p>

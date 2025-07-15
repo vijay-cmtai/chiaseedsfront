@@ -1,3 +1,4 @@
+// src/features/payment/paymentSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import paymentService from "./paymentAPI";
 import { logout } from "../auth/authSlice";
@@ -11,31 +12,44 @@ const initialState = {
 
 export const createRazorpayOrder = createAsyncThunk(
   "payment/createOrder",
-  async (orderData, thunkAPI) => {
+  async (orderData, { rejectWithValue }) => {
     try {
       return await paymentService.createRazorpayOrder(orderData);
     } catch (error) {
       const message = error.response?.data?.message || error.message;
-      if (error.response?.status === 401) thunkAPI.dispatch(logout());
-      return thunkAPI.rejectWithValue(message);
+      if (error.response?.status === 401) rejectWithValue.dispatch(logout());
+      return rejectWithValue(message);
     }
   }
 );
 
 export const verifyPayment = createAsyncThunk(
   "payment/verify",
-  async (paymentData, thunkAPI) => {
+  async (paymentData, { rejectWithValue }) => {
     try {
       return await paymentService.verifyPayment(paymentData);
     } catch (error) {
       const message = error.response?.data?.message || error.message;
-      if (error.response?.status === 401) thunkAPI.dispatch(logout());
-      return thunkAPI.rejectWithValue(message);
+      if (error.response?.status === 401) rejectWithValue.dispatch(logout());
+      return rejectWithValue(message);
     }
   }
 );
 
-export const paymentSlice = createSlice({
+export const retryShipment = createAsyncThunk(
+  "payment/retryShipment",
+  async (orderData, { rejectWithValue }) => {
+    try {
+      return await paymentService.retryShipment(orderData);
+    } catch (error) {
+      const message = error.response?.data?.message || error.message;
+      if (error.response?.status === 401) rejectWithValue.dispatch(logout());
+      return rejectWithValue(message);
+    }
+  }
+);
+
+const paymentSlice = createSlice({
   name: "payment",
   initialState,
   reducers: {
@@ -67,6 +81,17 @@ export const paymentSlice = createSlice({
         state.finalOrder = action.payload;
       })
       .addCase(verifyPayment.rejected, (state, action) => {
+        state.status = "failed";
+        state.message = action.payload;
+      })
+      .addCase(retryShipment.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(retryShipment.fulfilled, (state) => {
+        state.status = "succeeded";
+        state.message = "Shipment created successfully";
+      })
+      .addCase(retryShipment.rejected, (state, action) => {
         state.status = "failed";
         state.message = action.payload;
       });

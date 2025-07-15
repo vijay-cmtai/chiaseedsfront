@@ -4,7 +4,6 @@ import BlogSidebar from "../BlogSidebar";
 import VideoModal from "../../components/ModalVideo";
 import blogs from "../../api/blogs";
 
-// --- Color Palette (Consistent with your theme) ---
 const colors = {
   primary: "#878fba",
   textDark: "#3d2b56",
@@ -16,14 +15,11 @@ const colors = {
   borderColor: "rgba(135, 143, 186, 0.25)",
 };
 
-// --- Styles for the new UI ---
 const styles = {
-  // Main Section
   blogSection: {
     padding: "100px 0",
     background: `linear-gradient(to right, ${colors.gradientStart} 0%, ${colors.gradientEnd} 100%)`,
   },
-  // Individual Blog Post Card
   postCard: {
     padding: "30px",
     backgroundColor: colors.cardBackground,
@@ -31,8 +27,12 @@ const styles = {
     border: `1px solid ${colors.borderColor}`,
     boxShadow: "0 10px 30px rgba(0, 0, 0, 0.07)",
     marginBottom: "40px",
+    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+    "&:hover": {
+      transform: "translateY(-5px)",
+      boxShadow: "0 15px 35px rgba(0, 0, 0, 0.1)",
+    },
   },
-  // Media Holder for Image/Video
   mediaHolder: {
     position: "relative",
     borderRadius: "15px",
@@ -49,7 +49,6 @@ const styles = {
     left: "50%",
     transform: "translate(-50%, -50%)",
   },
-  // Meta Info (Author, Comments, Date)
   metaInfo: {
     display: "flex",
     gap: "20px",
@@ -63,7 +62,6 @@ const styles = {
     textDecoration: "none",
     fontWeight: "bold",
   },
-  // Post Details
   postTitle: {
     fontSize: "28px",
     fontWeight: "700",
@@ -73,6 +71,9 @@ const styles = {
     color: colors.textDark,
     textDecoration: "none",
     transition: "color 0.3s ease",
+    "&:hover": {
+      color: colors.primary,
+    },
   },
   postExcerpt: {
     fontSize: "16px",
@@ -85,8 +86,11 @@ const styles = {
     color: colors.primary,
     textDecoration: "none",
     fontSize: "16px",
+    transition: "color 0.3s ease",
+    "&:hover": {
+      color: colors.textDark,
+    },
   },
-  // Pagination Styles
   paginationWrapper: {
     textAlign: "center",
     marginTop: "20px",
@@ -117,11 +121,8 @@ const styles = {
 };
 
 const BlogList = (props) => {
-  const ClickHandler = () => {
-    window.scrollTo(10, 0);
-  };
+  // --- ClickHandler HATA DIYA GAYA HAI ---
 
-  // State for pagination
   const [activePage, setActivePage] = useState(1);
 
   return (
@@ -147,8 +148,8 @@ const BlogList = (props) => {
                   <div style={styles.metaInfo}>
                     <span>
                       <i className="fa fa-user"></i> By{" "}
+                      {/* --- onClick HATA DIYA GAYA HAI --- */}
                       <Link
-                        onClick={ClickHandler}
                         to={`/blog-single/${blog.id}`}
                         style={styles.metaLink}
                       >
@@ -164,8 +165,8 @@ const BlogList = (props) => {
                   </div>
                   <div>
                     <h3 style={styles.postTitle}>
+                      {/* --- onClick HATA DIYA GAYA HAI --- */}
                       <Link
-                        onClick={ClickHandler}
                         to={`/blog-single/${blog.id}`}
                         style={styles.titleLink}
                       >
@@ -178,8 +179,8 @@ const BlogList = (props) => {
                       and strategic planning to communications. If you love
                       rising to a challenge.
                     </p>
+                    {/* --- onClick HATA DIYA GAYA HAI --- */}
                     <Link
-                      onClick={ClickHandler}
                       to={`/blog-single/${blog.id}`}
                       style={styles.readMoreLink}
                     >
@@ -189,6 +190,7 @@ const BlogList = (props) => {
                 </div>
               ))}
 
+              {/* Pagination remains the same */}
               <div style={styles.paginationWrapper}>
                 <ul style={styles.paginationList}>
                   <li>
@@ -234,6 +236,19 @@ const BlogList = (props) => {
           <BlogSidebar blLeft={props.blLeft} />
         </div>
       </div>
+      {/* Simple hover effects using CSS for better performance */}
+      <style>{`
+        .postCard:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        .titleLink:hover {
+          color: ${colors.primary} !important;
+        }
+         .readMoreLink:hover {
+          color: ${colors.textDark} !important;
+        }
+      `}</style>
     </section>
   );
 };
