@@ -28,7 +28,7 @@ const styles = {
   },
   title: {
     fontWeight: 900,
-    fontSize: "64px",
+    fontSize: "50px",
     lineHeight: "1.1",
     textTransform: "uppercase",
     margin: 0,
@@ -148,10 +148,16 @@ class WarriorHero extends Component {
                 </h2>
               </div>
               <p style={styles.description}>
-                Long before it was a modern health trend, chia was the lifeblood
-                of Mesoamerica's greatest warriors. The Aztec and Maya called it
-                'strength,' relying on this tiny seed for unmatched endurance on
-                the march and ferocity in battle.
+                The Untold Story of Chia: From Sacred Seed to Superfood Long
+                before chia became a modern superfood, it fueled ancient
+                warriors. The Aztecs and Mayans saw chia as sacred — a source of
+                energy, medicine, and even currency. Just one spoonful could
+                power a warrior for a day. But after the Spanish invasion, chia
+                was banned — nearly lost to history. Now, Naraa Global
+                Enterprises is bringing it back. Naraa Chia Seeds — Reviving
+                Ancient Nutrition Naturally grown Lab-tested for purity Packed
+                with care Delivered farm to spoon Each pouch from Naraa carries
+                the strength of tradition and the power of plant-based health.
               </p>
               <div className="btns">
                 <Link
