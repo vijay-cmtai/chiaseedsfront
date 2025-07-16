@@ -1,4 +1,3 @@
-// src/features/payment/paymentSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import paymentService from "./paymentAPI";
 import { logout } from "../auth/authSlice";
@@ -12,12 +11,12 @@ const initialState = {
 
 export const createRazorpayOrder = createAsyncThunk(
   "payment/createOrder",
-  async (orderData, { rejectWithValue }) => {
+  async (orderData, { rejectWithValue, dispatch }) => {
     try {
       return await paymentService.createRazorpayOrder(orderData);
     } catch (error) {
       const message = error.response?.data?.message || error.message;
-      if (error.response?.status === 401) rejectWithValue.dispatch(logout());
+      if (error.response?.status === 401) dispatch(logout());
       return rejectWithValue(message);
     }
   }
@@ -25,12 +24,12 @@ export const createRazorpayOrder = createAsyncThunk(
 
 export const verifyPayment = createAsyncThunk(
   "payment/verify",
-  async (paymentData, { rejectWithValue }) => {
+  async (paymentData, { rejectWithValue, dispatch }) => {
     try {
       return await paymentService.verifyPayment(paymentData);
     } catch (error) {
       const message = error.response?.data?.message || error.message;
-      if (error.response?.status === 401) rejectWithValue.dispatch(logout());
+      if (error.response?.status === 401) dispatch(logout());
       return rejectWithValue(message);
     }
   }
@@ -38,12 +37,26 @@ export const verifyPayment = createAsyncThunk(
 
 export const retryShipment = createAsyncThunk(
   "payment/retryShipment",
-  async (orderData, { rejectWithValue }) => {
+  async (orderData, { rejectWithValue, dispatch }) => {
     try {
       return await paymentService.retryShipment(orderData);
     } catch (error) {
       const message = error.response?.data?.message || error.message;
-      if (error.response?.status === 401) rejectWithValue.dispatch(logout());
+      if (error.response?.status === 401) dispatch(logout());
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const cancelOrder = createAsyncThunk(
+  "payment/cancelOrder",
+  async ({ orderId, reason }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await paymentService.cancelOrder({ orderId, reason });
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.message || error.message;
+      if (error.response?.status === 401) dispatch(logout());
       return rejectWithValue(message);
     }
   }
@@ -92,6 +105,17 @@ const paymentSlice = createSlice({
         state.message = "Shipment created successfully";
       })
       .addCase(retryShipment.rejected, (state, action) => {
+        state.status = "failed";
+        state.message = action.payload;
+      })
+      .addCase(cancelOrder.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(cancelOrder.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.message = "Order successfully cancelled.";
+      })
+      .addCase(cancelOrder.rejected, (state, action) => {
         state.status = "failed";
         state.message = action.payload;
       });
