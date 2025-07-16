@@ -110,7 +110,7 @@ const ChiaMicrogreens = () => {
           <div className="col-lg-5 col-md-12 mb-4 mb-lg-0">
             <div style={styles.imageWrapper}>
               <img
-                src="https://vigyanam.com/wp-content/images/2020/02/microorganisms-in-hindi-780x470.jpg" // Yahan imported image variable use karein
+                src="https://www.feastingathome.com/wp-content/uploads/2021/01/How-to-grow-sprouts-2-1.jpg" // Yahan imported image variable use karein
                 alt="Chia Seeds Sprouting"
                 style={styles.leftImage}
               />
