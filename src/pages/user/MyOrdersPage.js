@@ -16,6 +16,7 @@ import {
   Collapse,
 } from "@material-ui/core";
 import { getMyOrders } from "../../features/user/userSlice";
+import { cancelOrder } from "../../features/payment/paymentSlice"; // <-- NEW: Import cancelOrder action
 import OrderTracker from "../../components/OrderTracker";
 
 const colors = {
@@ -30,6 +31,8 @@ const colors = {
   lightBlue: "#e3f6f8",
   amber: "#f57c00",
   lightAmber: "#fff8e1",
+  red: "#dc3545", // <-- NEW: Color for cancellation
+  lightRed: "#f8d7da", // <-- NEW: BG for cancelled chip
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -77,6 +80,7 @@ const useStyles = makeStyles((theme) => ({
   orderFooter: {
     display: "flex",
     justifyContent: "space-between",
+    alignItems: "center", // <-- NEW: Better alignment
     marginTop: theme.spacing(2),
   },
   chip: {
@@ -88,6 +92,15 @@ const useStyles = makeStyles((theme) => ({
   statusCompleted: { backgroundColor: colors.lightGreen, color: colors.green },
   statusShipped: { backgroundColor: colors.lightBlue, color: colors.blue },
   statusDefault: { backgroundColor: colors.lightAmber, color: colors.amber },
+  statusCancelled: { backgroundColor: colors.lightRed, color: colors.red }, // <-- NEW
+  cancelButton: {
+    // <-- NEW
+    color: colors.red,
+    borderColor: colors.red,
+    "&:hover": {
+      backgroundColor: colors.lightRed,
+    },
+  },
 }));
 
 const formatDate = (date) =>
@@ -101,6 +114,7 @@ const getStatusChipClass = (status, classes) => {
   const s = status?.toLowerCase();
   if (s === "shipped") return classes.statusShipped;
   if (s === "delivered" || s === "completed") return classes.statusCompleted;
+  if (s === "cancelled") return classes.statusCancelled; // <-- NEW
   return classes.statusDefault;
 };
 
@@ -110,40 +124,48 @@ const MyOrdersPage = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [trackingVisible, setTrackingVisible] = useState({});
 
-  const {
-    orders = [],
-    status = "idle",
-    message = "",
-  } = useSelector((state) => state.user || {});
-
-  // Check if user is authenticated
-  const isAuthenticated = useSelector(
-    (state) => state.auth?.isAuthenticated || state.user?.isAuthenticated
+  const { orders = [], status: userStatus } = useSelector(
+    (state) => state.user || {}
   );
+  const { status: paymentStatus } = useSelector((state) => state.payment || {}); // <-- NEW: Get status from payment slice
+  const isAuthenticated = useSelector((state) => state.auth?.user);
 
   useEffect(() => {
-    // Always fetch orders when component mounts, regardless of status
-    // This ensures fresh data after login
     if (isAuthenticated) {
       dispatch(getMyOrders());
     }
   }, [dispatch, isAuthenticated]);
 
-  // Additional useEffect to handle the case where orders are empty but user is authenticated
+  // <-- NEW: This useEffect will re-fetch orders after a successful cancellation
   useEffect(() => {
-    if (isAuthenticated && orders.length === 0 && status === "idle") {
+    if (paymentStatus === "succeeded") {
+      // Check if the last action was cancellation
+      // For simplicity, we just refetch. This is robust.
       dispatch(getMyOrders());
     }
-  }, [dispatch, isAuthenticated, orders.length, status]);
+  }, [paymentStatus, dispatch]);
 
   const handleTabChange = (e, newValue) => setTabIndex(newValue);
+
+  // <-- NEW: Handler for cancelling an order
+  const handleCancelOrder = (orderId) => {
+    if (
+      window.confirm(
+        "Are you sure you want to cancel this order? This action is irreversible."
+      )
+    ) {
+      dispatch(cancelOrder({ orderId }));
+    }
+  };
 
   const filteredOrders = useMemo(() => {
     if (!Array.isArray(orders)) return [];
     const statusMap = ["All", "Paid", "Shipped", "Delivered", "Cancelled"];
     const currentStatus = statusMap[tabIndex];
     if (currentStatus === "All") return orders;
-    return orders.filter((order) => order.orderStatus === currentStatus);
+    return orders.filter(
+      (order) => order.orderStatus.toLowerCase() === currentStatus.toLowerCase()
+    );
   }, [orders, tabIndex]);
 
   const toggleTracking = (orderId) => {
@@ -153,11 +175,7 @@ const MyOrdersPage = () => {
     }));
   };
 
-  // Show loading if we're authenticated but still loading orders
-  if (
-    isAuthenticated &&
-    (status === "loading" || (status === "idle" && orders.length === 0))
-  ) {
+  if (isAuthenticated && userStatus === "loading") {
     return (
       <Box
         display="flex"
@@ -170,14 +188,6 @@ const MyOrdersPage = () => {
     );
   }
 
-  if (status === "failed")
-    return (
-      <Typography color="error" align="center">
-        Error: {message}
-      </Typography>
-    );
-
-  // If not authenticated, show appropriate message
   if (!isAuthenticated) {
     return (
       <Box
@@ -212,25 +222,27 @@ const MyOrdersPage = () => {
         </Tabs>
 
         {filteredOrders.length > 0 ? (
-          filteredOrders.map((order, index) => (
+          filteredOrders.map((order) => (
             <Box key={order._id} className={classes.orderCard}>
               <Box display="flex" justifyContent="space-between">
                 <Box>
                   <Typography className={classes.orderId}>
                     Order #{order._id.slice(-6).toUpperCase()}
                   </Typography>
-                  <Typography variant="body2">
+                  <Typography variant="body2" color="textSecondary">
                     Ordered on: {formatDate(order.createdAt)}
                   </Typography>
                 </Box>
-                <Button
-                  component={Link}
-                  to={`/user/orders/${order._id}`}
-                  size="small"
-                  style={{ fontWeight: "bold", color: colors.primary }}
-                >
-                  View Details
-                </Button>
+                <Box>
+                  <Button
+                    component={Link}
+                    to={`/user/orders/${order._id}`}
+                    size="small"
+                    style={{ fontWeight: "bold", color: colors.primary }}
+                  >
+                    View Details
+                  </Button>
+                </Box>
               </Box>
 
               <Box mt={2} display="flex" gap={1}>
@@ -255,18 +267,36 @@ const MyOrdersPage = () => {
                     ? "Hide Tracking"
                     : "Show Tracking"}
                 </Button>
-
-                <Collapse in={trackingVisible[order._id]}>
-                  <OrderTracker order={order} />
-                </Collapse>
               </Box>
+
+              <Collapse in={trackingVisible[order._id]}>
+                <OrderTracker order={order} />
+              </Collapse>
 
               <Divider style={{ marginTop: 12, marginBottom: 12 }} />
 
               <Box className={classes.orderFooter}>
-                <Typography className={classes.orderTotal}>
-                  Total: ₹{order.totalPrice.toLocaleString()}
-                </Typography>
+                <Box display="flex" alignItems="center" gap={1}>
+                  {/* -- NEW: Cancel Button Logic -- */}
+                  {!["Shipped", "Delivered", "Cancelled"].includes(
+                    order.orderStatus
+                  ) && (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      className={classes.cancelButton}
+                      onClick={() => handleCancelOrder(order._id)}
+                      disabled={paymentStatus === "loading"}
+                    >
+                      {paymentStatus === "loading"
+                        ? "Cancelling..."
+                        : "Cancel Order"}
+                    </Button>
+                  )}
+                  <Typography variant="body1" className={classes.orderTotal}>
+                    Total: ₹{order.totalPrice.toLocaleString()}
+                  </Typography>
+                </Box>
                 <Chip
                   label={order.orderStatus}
                   className={`${classes.chip} ${getStatusChipClass(
