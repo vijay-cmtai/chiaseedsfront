@@ -588,7 +588,7 @@ const CartPage = () => {
           )}
           <Button
             component={Link}
-            to="/user/profile"
+            to="/user/address"
             variant="outlined"
             color="primary"
             style={{ marginTop: "1rem" }}
