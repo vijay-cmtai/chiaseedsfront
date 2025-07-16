@@ -194,8 +194,7 @@ const AddressPage = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    console.log("Addresses from Redux:", addresses); // Debug log
-    if (message) {
+    if (message && (status === "failed" || status === "succeeded")) {
       setNotification({
         open: true,
         message: message,
@@ -203,7 +202,7 @@ const AddressPage = () => {
       });
       const timer = setTimeout(() => {
         setNotification({ ...notification, open: false });
-      }, 5000); // Auto close after 5 seconds
+      }, 5000);
       return () => clearTimeout(timer);
     }
   }, [message, status]);
@@ -242,9 +241,7 @@ const AddressPage = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting Address:", currentAddress); // Debug log
 
-    // Client-side validation
     if (
       !currentAddress.fullName ||
       !currentAddress.phone ||
@@ -261,13 +258,21 @@ const AddressPage = () => {
       return;
     }
 
+    let action;
     if (currentAddress._id) {
-      await dispatch(updateAddress(currentAddress));
+      action = updateAddress({
+        addressId: currentAddress._id,
+        addressData: currentAddress,
+      });
     } else {
-      await dispatch(addAddress(currentAddress));
+      action = addAddress(currentAddress);
     }
-    dispatch(getAddresses()); // Refresh address list
-    handleCloseModal();
+
+    const result = await dispatch(action);
+
+    if (result.type.endsWith("/fulfilled")) {
+      handleCloseModal();
+    }
   };
 
   if (status === "loading" && addresses.length === 0) {
@@ -323,8 +328,7 @@ const AddressPage = () => {
                 <Divider style={{ marginBottom: "12px" }} />
                 <Box>
                   <Typography variant="body1" style={{ fontWeight: 500 }}>
-                    {addr.fullName || "No Name"}{" "}
-                    {/* Fallback if fullName is missing */}
+                    {addr.fullName || "No Name"}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
                     {addr.street}, {addr.city}, {addr.state} - {addr.postalCode}
