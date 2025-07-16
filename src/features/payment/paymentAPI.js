@@ -1,4 +1,3 @@
-// src/features/payment/paymentAPI.js
 import axios from "axios";
 
 const BACKEND_URL =
@@ -35,10 +34,16 @@ const retryShipment = async (orderData) => {
   return response.data.data;
 };
 
+const cancelOrder = async ({ orderId, reason }) => {
+  const response = await api.patch(`/${orderId}/cancel`, { reason });
+  return response.data;
+};
+
 const paymentService = {
   createRazorpayOrder,
   verifyPayment,
   retryShipment,
+  cancelOrder,
 };
 
 export default paymentService;
