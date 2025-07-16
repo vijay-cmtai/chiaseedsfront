@@ -247,9 +247,6 @@ const UserDashboardLayout = () => {
           >
             <MenuIcon />
           </IconButton>
-          // <Typography variant="h6" noWrap className={classes.title}>
-          //   Hello, {user?.name?.split(" ")[0] ?? "Guest"}!
-          // </Typography>
         </Toolbar>
       </AppBar>
       <nav className={classes.drawer} aria-label="user navigation">
