@@ -128,6 +128,10 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+// --- Naye charges ke liye constants define karein ---
+const DELIVERY_CHARGE = 99;
+const GST_RATE = 0.05; // 5%
+
 const CartPage = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -192,10 +196,23 @@ const CartPage = () => {
     return { validCartItems: valid, invalidCartItems: invalid };
   }, [cart]);
 
-  const subtotal = validCartItems.reduce(
-    (acc, item) => acc + item.product.price * item.quantity,
-    0
+  // --- Naye charges ko calculate karein ---
+  const subtotal = useMemo(
+    () =>
+      validCartItems.reduce(
+        (acc, item) => acc + item.product.price * item.quantity,
+        0
+      ),
+    [validCartItems]
   );
+
+  const gstAmount = useMemo(() => subtotal * GST_RATE, [subtotal]);
+
+  const totalAmount = useMemo(
+    () => subtotal + gstAmount + DELIVERY_CHARGE,
+    [subtotal, gstAmount]
+  );
+
   const selectedAddress = addresses?.find(
     (addr) => addr._id === selectedAddressId
   );
@@ -229,7 +246,10 @@ const CartPage = () => {
       });
       return;
     }
-    dispatch(createRazorpayOrder({ addressId: selectedAddressId }));
+    // Pass totalAmount in the payload
+    dispatch(
+      createRazorpayOrder({ addressId: selectedAddressId, amount: totalAmount })
+    );
   };
 
   useEffect(() => {
@@ -253,9 +273,9 @@ const CartPage = () => {
 
         const options = {
           key: razorpayOrder.key,
-          amount: razorpayOrder.amount,
+          amount: razorpayOrder.amount, // Amount from backend
           currency: razorpayOrder.currency,
-          name: "Your Store Name",
+          name: "Naraaglobal store",
           description: "Payment for your order",
           order_id: razorpayOrder.orderId,
           handler: function (response) {
@@ -504,17 +524,43 @@ const CartPage = () => {
                     Order Summary
                   </Typography>
                   <Divider style={{ margin: "1rem 0" }} />
+
                   <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Typography>Subtotal</Typography>
+                    <Typography color="textSecondary">Subtotal</Typography>
                     <Typography>₹{subtotal.toLocaleString()}</Typography>
                   </Box>
-                  <Typography
-                    variant="body2"
-                    color="textSecondary"
-                    style={{ textAlign: "right", marginBottom: "1rem" }}
-                  >
-                    Shipping and taxes calculated at checkout.
-                  </Typography>
+
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography color="textSecondary">GST (5%)</Typography>
+                    <Typography>
+                      ₹
+                      {gstAmount.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </Typography>
+                  </Box>
+
+                  <Box display="flex" justifyContent="space-between" mb={2}>
+                    <Typography color="textSecondary">
+                      Delivery Charge
+                    </Typography>
+                    <Typography>₹{DELIVERY_CHARGE.toLocaleString()}</Typography>
+                  </Box>
+
+                  <Divider style={{ margin: "1rem 0" }} />
+
+                  <Box display="flex" justifyContent="space-between" mb={2}>
+                    <Typography variant="h6">Total Amount</Typography>
+                    <Typography variant="h6">
+                      ₹
+                      {totalAmount.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </Typography>
+                  </Box>
+
                   <Button
                     variant="contained"
                     color="primary"
@@ -530,7 +576,10 @@ const CartPage = () => {
                     {isPaymentProcessing ? (
                       <CircularProgress size={24} color="inherit" />
                     ) : (
-                      `Proceed to Pay ₹${subtotal.toLocaleString()}`
+                      `Proceed to Pay ₹${totalAmount.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}`
                     )}
                   </Button>
                   {invalidCartItems.length > 0 && (
