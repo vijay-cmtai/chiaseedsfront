@@ -16,15 +16,15 @@ const colors = {
 // --- Styles ---
 const styles = {
   teamSection: {
-    padding: "100px 0",
+    padding: "80px 0", // Thoda padding kam kiya
     background: `linear-gradient(to right, ${colors.gradientStart} 0%, ${colors.gradientEnd} 100%)`,
   },
   sectionHeader: {
     textAlign: "center",
-    marginBottom: "60px",
+    marginBottom: "50px", // Thoda margin kam kiya
   },
   sectionTitle: {
-    fontSize: "42px",
+    fontSize: "38px", // Font size chhota kiya
     fontWeight: 900,
     color: colors.textDark,
   },
@@ -32,18 +32,23 @@ const styles = {
     color: colors.primaryButton,
   },
   sectionSubtitle: {
-    fontSize: "18px",
+    fontSize: "16px", // Font size chhota kiya
     color: colors.textDark,
     maxWidth: "600px",
     margin: "15px auto 0",
     lineHeight: "1.7",
+  },
+  // ++ YAHAN NAYA STYLE ADD KAREIN ++
+  sliderContainer: {
+    maxWidth: "400px", // Card ki max-width set ki. Aap ise 350px ya 450px bhi kar sakte hain.
+    margin: "0 auto", // Isse slider center mein rahega.
   },
   teamCard: {
     backgroundColor: "rgba(255, 255, 255, 0.7)",
     backdropFilter: "blur(10px)",
     border: "1px solid rgba(255, 255, 255, 0.2)",
     borderRadius: "20px",
-    margin: "0 15px", // Adds spacing between slider items
+    margin: "0 15px",
     textAlign: "center",
     overflow: "hidden",
     transition: "transform 0.4s ease, box-shadow 0.4s ease",
@@ -62,7 +67,7 @@ const styles = {
     padding: "25px 20px",
   },
   name: {
-    fontSize: "22px",
+    fontSize: "20px", // Font size chhota kiya
     fontWeight: "700",
     color: colors.textDark,
     margin: "0 0 5px 0",
@@ -95,21 +100,23 @@ const TeamSection = () => {
   };
 
   const sliderSettings = {
-    dots: true, // Dots are better for touch devices
-    arrows: false, // Hiding arrows for a cleaner look, dots are sufficient
+    dots: true,
+    arrows: false,
     speed: 1000,
-    slidesToShow: 3,
+    slidesToShow: 1, // Ek hi slide dikhegi
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
+    // Responsive settings ab zaroori nahi agar aap hamesha 1 hi dikhana chahte hain,
+    // lekin rakhne se koi nuksaan nahi.
     responsive: [
       {
         breakpoint: 1200,
-        settings: { slidesToShow: 3 },
+        settings: { slidesToShow: 1 },
       },
       {
         breakpoint: 992,
-        settings: { slidesToShow: 2 },
+        settings: { slidesToShow: 1 },
       },
       {
         breakpoint: 768,
@@ -118,32 +125,12 @@ const TeamSection = () => {
     ],
   };
 
-  // Using placeholder images from picsum.photos for demonstration
   const Teams = [
     {
       tImg: "https://picsum.photos/seed/person1/400/500",
-      title: "Chris Fletcher",
-      des: "Founder & CEO",
-    },
-    {
-      tImg: "https://picsum.photos/seed/person2/400/500",
-      title: "Ema Aliana",
-      des: "Nutrition Specialist",
-    },
-    {
-      tImg: "https://picsum.photos/seed/person3/400/500",
-      title: "John Clyne",
-      des: "Marketing Director",
-    },
-    {
-      tImg: "https://picsum.photos/seed/person4/400/500",
-      title: "Lily Jameson",
-      des: "Quality Assurance",
-    },
-    {
-      tImg: "https://picsum.photos/seed/person5/400/500",
-      title: "Mark Davis",
-      des: "Lead Developer",
+      title: "Sahil Mahendra pardake",
+      des: "A founder proprietor",
+      qua: "B com Ex NCC senior under officer",
     },
   ];
 
@@ -159,7 +146,8 @@ const TeamSection = () => {
             highest quality chia seeds and promoting a healthy lifestyle.
           </p>
         </div>
-        <div className="team-slider">
+        {/* ++ YAHAN STYLE APPLY KAREIN ++ */}
+        <div className="team-slider" style={styles.sliderContainer}>
           <Slider {...sliderSettings}>
             {Teams.map((team, index) => (
               <div key={index}>
@@ -189,8 +177,8 @@ const TeamSection = () => {
                   <div style={styles.details}>
                     <h4 style={styles.name}>{team.title}</h4>
                     <p style={styles.designation}>{team.des}</p>
+                    <p style={{ color: colors.textDark }}>{team.qua}</p>
                     <ul style={styles.socialLinks}>
-                      {/* IMPORTANT: Make sure you have Font Awesome linked in your index.html */}
                       <li>
                         <Link
                           onClick={ClickHandler}
