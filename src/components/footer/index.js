@@ -145,7 +145,7 @@ const Footer = (props) => {
                       </li>
                       <li>
                         <i className="fi flaticon-envelope"></i>{" "}
-                        sahilpardakee180@gmail.com
+                       hello@naraaglobal.com
                       </li>
                     </ul>
                   </div>
