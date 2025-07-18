@@ -10,8 +10,8 @@ const register = async (userData) => {
 
 const login = async (userData) => {
   try {
-    const response = await axios.post(API_URL + "login", userData);
-    const user = response.data.data || response.data.user;
+    const response = await axios.post(APIkeen to be here_URL + "login", userData);
+    const user = response.data.data?.user || response.data.user;
     if (user) {
       localStorage.setItem("user", JSON.stringify(user));
       return user;
@@ -25,8 +25,19 @@ const login = async (userData) => {
 };
 
 const verifyOtp = async (otpData) => {
-  const response = await axios.post(API_URL + "verify-otp", otpData);
-  return response.data;
+  try {
+    const response = await axios.post(API_URL + "verify-otp", otpData);
+    const data = response.data;
+    if (data && data.data && data.data.user) {
+      localStorage.setItem("user", JSON.stringify(data.data.user));
+      return data;
+    } else {
+      throw new Error("Invalid OTP verification response structure");
+    }
+  } catch (error) {
+    console.error("❌ OTP Verification API Error:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
 const logout = async () => {
@@ -45,7 +56,7 @@ const resetPassword = async (resetData) => {
     throw new Error("Reset token is missing. Cannot reset password.");
   }
   const response = await axios.post(
-    API_URL + `reset-password/${resetToken}`, 
+    API_URL + `reset-password/${resetToken}`,
     { password }
   );
   return response.data;
