@@ -206,7 +206,7 @@ const UserDashboardPage = () => {
   return (
     <div className={classes.pageContainer}>
       <Typography variant="h4" className={classes.welcomeHeader}>
-        Hello, {user?.user?.name || "User"}!
+        Hello, {user?.user?.fullName || "User"}!
       </Typography>
       <Typography variant="body1" className={classes.welcomeSubheader}>
         Here's a quick overview of your account.
