@@ -12,8 +12,9 @@ import {
 import { toast } from "react-toastify";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { verifyOtp, reset, register } from "../../features/auth/authSlice";
+import { verifyOtp, reset } from "../../features/auth/authSlice";
 
+// --- Theme Colors and Styles Definition (Copied from SignUpPage) ---
 const colors = {
   primary: "#878fba",
   primaryHover: "#6c749d",
@@ -83,16 +84,7 @@ const useStyles = makeStyles((theme) => ({
       textDecoration: "none",
     },
   },
-  resendLink: {
-    color: colors.primary,
-    fontWeight: "bold",
-    cursor: "pointer",
-    textDecoration: "none",
-    "&:hover": {
-      textDecoration: "underline",
-    },
-  },
-});
+}));
 
 const OtpVerificationPage = () => {
   const classes = useStyles();
@@ -100,18 +92,17 @@ const OtpVerificationPage = () => {
   const dispatch = useDispatch();
   const location = useLocation();
 
-  const { isLoading, isError, isOtpVerifySuccess, message, user } = useSelector(
+  const { isLoading, isError, isOtpVerifySuccess, message } = useSelector(
     (state) => state.auth
   );
 
-  const email = location.state?.email || "";
+  const email = location.state?.email;
   const [otp, setOtp] = useState("");
 
   useEffect(() => {
     if (!email) {
       toast.error("No email found. Please register first.");
       navigate("/register");
-      return;
     }
 
     if (isError) {
@@ -120,13 +111,13 @@ const OtpVerificationPage = () => {
       return;
     }
 
-    if (isOtpVerifySuccess && user) {
-      toast.success(message || "Verification successful! You are now logged in.");
-      navigate("/"); // Redirect to home or dashboard
+    if (isOtpVerifySuccess) {
+      toast.success(message || "Verification successful! You can now log in.");
+      navigate("/login");
       dispatch(reset());
       return;
     }
-  }, [email, isError, isOtpVerifySuccess, message, navigate, dispatch, user]);
+  }, [email, isError, isOtpVerifySuccess, message, navigate, dispatch]);
 
   const submitForm = (e) => {
     e.preventDefault();
@@ -136,23 +127,7 @@ const OtpVerificationPage = () => {
     }
 
     const otpData = { email, otp };
-    console.log("Submitting OTP data:", otpData); // Debug log
     dispatch(verifyOtp(otpData));
-  };
-
-  const resendOtp = async (e) => {
-    e.preventDefault();
-    if (!email) {
-      toast.error("No email found. Please register again.");
-      navigate("/register");
-      return;
-    }
-    try {
-      await dispatch(register({ email })).unwrap();
-      toast.success("A new OTP has been sent to your email.");
-    } catch (error) {
-      toast.error(error || "Failed to resend OTP. Please try again.");
-    }
   };
 
   return (
@@ -175,10 +150,9 @@ const OtpVerificationPage = () => {
                   name="otp"
                   value={otp}
                   variant="outlined"
-                  onChange={(e) => setOtp(e.target.value.trim())}
+                  onChange={(e) => setOtp(e.target.value)}
                   className={classes.inputField}
                   required
-                  inputProps={{ maxLength: 6 }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -194,11 +168,7 @@ const OtpVerificationPage = () => {
             </Grid>
           </form>
           <Typography className={classes.noteHelp}>
-            Didn't receive an OTP?{" "}
-            <a href="#" onClick={resendOtp} className={classes.resendLink}>
-              Resend OTP
-            </a>{" "}
-            or <Link to="/register">Register again</Link>
+            Didn't receive an OTP? <Link to="/register">Register again</Link>
           </Typography>
         </CardContent>
       </Card>
