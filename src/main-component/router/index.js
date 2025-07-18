@@ -41,11 +41,15 @@ import Privacypolicy from "../PrivacyPolicy";
 import TermsAndConditions from "../TermsAndCondition";
 import OrderConfirmationPage from "../../pages/OrderConfirmationPage";
 import ScrollToTop from "../../components/ScrollToTop";
+import DiscountPopup from "../../components/DiscountPopup"; // Popup ko import karein
+import ResetPasswordPage from "../../components/ResetPasswordPage.js";
 
 const AllRoute = () => {
   return (
     <>
       <ScrollToTop />
+      <DiscountPopup />
+
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/home" element={<Homepage />} />
@@ -59,6 +63,10 @@ const AllRoute = () => {
         <Route path="/register" element={<SignUpPage />} />
         <Route path="/verify-otp" element={<OtpVerificationPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route
+          path="/reset-password/:resetToken"
+          element={<ResetPasswordPage />}
+        />
         <Route path="/blog" element={<Blog />} />
 
         {/* --- YAHAN NAYA ROUTE ADD KIYA GAYA HAI --- */}
