@@ -1,8 +1,8 @@
-// src/components/Service.js (Corrected Code)
+// src/components/Service.js (Updated Code)
 
 import React, { useState } from "react";
 
-// --- Consistent Color Palette ---
+// --- Colors and Styles (Koi badlav nahi) ---
 const colors = {
   primary: "#878fba",
   textDark: "#3d2b56",
@@ -12,7 +12,6 @@ const colors = {
   gradientEnd: "#e0c3fc",
 };
 
-// --- Style Objects ---
 const styles = {
   serviceArea: {
     background: `linear-gradient(to right, ${colors.gradientStart} 0%, ${colors.gradientEnd} 100%)`,
@@ -29,6 +28,7 @@ const styles = {
     transition: "all 0.3s ease-in-out",
     border: "1px solid rgba(255, 255, 255, 0.2)",
     cursor: "pointer",
+    height: "100%", // Sabhi items ki height barabar rakhne ke liye
   },
   serviceItemHover: {
     transform: "translateY(-8px)",
@@ -65,20 +65,14 @@ const styles = {
 
 const Service = () => {
   // ===================== FIX IS HERE =====================
-  // Font Awesome 4 aur 5, dono ke liye compatible icon class names
   const services = [
     {
-      icon: "fa fa-truck", // Yeh dono versions me kaam karta hai
-      title: "Free Shipping",
-      subtitle: "Order Over ₹560", // Dollar ko Rupee se badal diya gaya hai
-    },
-    {
-      icon: "fa fa-shield", // 'fa-shield-alt' ke bajaye 'fa-shield' use karein
+      icon: "fas fa-shield-alt", // "fa fa-shield" ke bajaye "fas fa-shield-alt"
       title: "Easy Payment",
       subtitle: "100% Secure Payment",
     },
     {
-      icon: "fa fa-headphones", // 'fa-headset' ke bajaye 'fa-headphones' use karein
+      icon: "fas fa-headset", // "fa fa-headphones" ke bajaye "fas fa-headset"
       title: "24/7 Support",
       subtitle: "Any time Support",
     },
@@ -90,7 +84,8 @@ const Service = () => {
   return (
     <div style={styles.serviceArea}>
       <div className="container">
-        <div className="row">
+        {/* Row me items ko center align karne ke liye justify-content-center class add ki */}
+        <div className="row justify-content-center">
           {services.map((service, index) => {
             const isHovered = hoveredIndex === index;
             const itemStyle = isHovered
@@ -98,6 +93,7 @@ const Service = () => {
               : styles.serviceItemBase;
 
             return (
+              // col-lg-4 3 items ke liye bilkul sahi hai
               <div
                 className="col-lg-4 col-md-6 col-sm-12 col-12 mb-4"
                 key={index}
