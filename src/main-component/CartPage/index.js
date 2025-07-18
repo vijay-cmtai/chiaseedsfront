@@ -128,9 +128,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// --- Naye charges ke liye constants define karein ---
 const DELIVERY_CHARGE = 99;
-const GST_RATE = 0.05; // 5%
+const GST_RATE = 0.05;
 
 const CartPage = () => {
   const classes = useStyles();
@@ -196,7 +195,6 @@ const CartPage = () => {
     return { validCartItems: valid, invalidCartItems: invalid };
   }, [cart]);
 
-  // --- Naye charges ko calculate karein ---
   const subtotal = useMemo(
     () =>
       validCartItems.reduce(
@@ -206,10 +204,13 @@ const CartPage = () => {
     [validCartItems]
   );
 
-  const gstAmount = useMemo(() => subtotal * GST_RATE, [subtotal]);
+  const gstAmount = useMemo(
+    () => (subtotal + DELIVERY_CHARGE) * GST_RATE,
+    [subtotal]
+  );
 
   const totalAmount = useMemo(
-    () => subtotal + gstAmount + DELIVERY_CHARGE,
+    () => subtotal + DELIVERY_CHARGE + gstAmount,
     [subtotal, gstAmount]
   );
 
@@ -246,7 +247,6 @@ const CartPage = () => {
       });
       return;
     }
-    // Pass totalAmount in the payload
     dispatch(
       createRazorpayOrder({ addressId: selectedAddressId, amount: totalAmount })
     );
@@ -273,7 +273,7 @@ const CartPage = () => {
 
         const options = {
           key: razorpayOrder.key,
-          amount: razorpayOrder.amount, // Amount from backend
+          amount: razorpayOrder.amount,
           currency: razorpayOrder.currency,
           name: "Naraaglobal store",
           description: "Payment for your order",
@@ -530,6 +530,13 @@ const CartPage = () => {
                     <Typography>₹{subtotal.toLocaleString()}</Typography>
                   </Box>
 
+                  <Box display="flex" justifyContent="space-between" mb={2}>
+                    <Typography color="textSecondary">
+                      Delivery Charge
+                    </Typography>
+                    <Typography>₹{DELIVERY_CHARGE.toLocaleString()}</Typography>
+                  </Box>
+
                   <Box display="flex" justifyContent="space-between" mb={1}>
                     <Typography color="textSecondary">GST (5%)</Typography>
                     <Typography>
@@ -539,13 +546,6 @@ const CartPage = () => {
                         maximumFractionDigits: 2,
                       })}
                     </Typography>
-                  </Box>
-
-                  <Box display="flex" justifyContent="space-between" mb={2}>
-                    <Typography color="textSecondary">
-                      Delivery Charge
-                    </Typography>
-                    <Typography>₹{DELIVERY_CHARGE.toLocaleString()}</Typography>
                   </Box>
 
                   <Divider style={{ margin: "1rem 0" }} />
