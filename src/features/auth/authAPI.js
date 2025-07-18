@@ -1,10 +1,7 @@
-// src/features/auth/authAPI.js
 import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API_URL = `${BACKEND_URL}/api/v1/auth/`;
-
-// ... (register, login, verifyOtp functions waise hi rahenge) ...
 
 const register = async (userData) => {
   const response = await axios.post(API_URL + "register", userData);
@@ -37,36 +34,29 @@ const logout = async () => {
   return { success: true, message: "Logout successful" };
 };
 
-// --- YAHAN NAYE FUNCTIONS ADD KIYE GAYE HAIN ---
-
-/**
- * Sends a password reset request
- * @param {object} emailData - { email: 'user@example.com' }
- */
 const forgotPassword = async (emailData) => {
   const response = await axios.post(API_URL + "forgot-password", emailData);
   return response.data;
 };
 
-/**
- * Resets the password using a token
- * @param {object} resetData - { token: 'some-token', password: 'new-password' }
- */
 const resetPassword = async (resetData) => {
-  const { token, password } = resetData;
-  const response = await axios.post(API_URL + `reset-password/${token}`, {
-    password,
-  });
+  const { resetToken, password } = resetData;
+  if (!resetToken) {
+    throw new Error("Reset token is missing. Cannot reset password.");
+  }
+  const response = await axios.post(
+    API_URL + `reset-password/${resetToken}`, 
+    { password }
+  );
   return response.data;
 };
-// --- END OF NEW FUNCTIONS ---
 
 const getCurrentUser = () => {
   try {
     const user = localStorage.getItem("user");
     return user ? JSON.parse(user) : null;
   } catch (error) {
-    console.error("Error getting current user:", error);
+    console.error("Error parsing user from localStorage:", error);
     return null;
   }
 };
@@ -80,8 +70,8 @@ const authService = {
   login,
   logout,
   verifyOtp,
-  forgotPassword, // Export karein
-  resetPassword, // Export karein
+  forgotPassword,
+  resetPassword,
   getCurrentUser,
   isAuthenticated,
 };
