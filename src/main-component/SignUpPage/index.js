@@ -246,11 +246,11 @@ const SignUpPage = () => {
                       control={<Radio />}
                       label="User"
                     />
-                     <FormControlLabel
-                      value="admin"
-                      control={<Radio />}
-                      label="Admin"
-                    /> 
+                    //  <FormControlLabel
+                    //   value="admin"
+                    //   control={<Radio />}
+                    //   label="Admin"
+                    // /> 
                   </RadioGroup>
                 </FormControl>
               </Grid>
