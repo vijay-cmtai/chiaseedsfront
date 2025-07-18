@@ -1,197 +1,209 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import authService from "./authAPI";
+import React, { useState, useEffect } from "react";
+import {
+  Grid,
+  TextField,
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  makeStyles,
+  Box,
+} from "@material-ui/core";
+import { toast } from "react-toastify";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { verifyOtp, reset, register } from "../../features/auth/authSlice";
 
-// Get user from localStorage
-const user = JSON.parse(localStorage.getItem("user"));
-
-const initialState = {
-  user: user ? user : null,
-  isError: false,
-  isLoginSuccess: false,
-  isRegisterSuccess: false,
-  isLoading: false,
-  isAuthenticated: user ? true : false,
-  isOtpVerifySuccess: false, // Added explicitly for clarity
-  message: "",
-  isForgotPasswordLoading: false,
-  isForgotPasswordSuccess: false,
-  isResetSuccess: false,
+const colors = {
+  primary: "#878fba",
+  primaryHover: "#6c749d",
+  textDark: "#3d2b56",
+  textMuted: "#6c749d",
+  gradientStart: "#fde7c9",
+  gradientEnd: "#e0c3fc",
+  cardBg: "rgba(255, 255, 255, 0.9)",
+  borderColor: "rgba(61, 43, 86, 0.2)",
 };
 
-// --- Async Thunk Functions ---
-
-// Register user
-export const register = createAsyncThunk(
-  "auth/register",
-  async (userData, thunkAPI) => {
-    try {
-      return await authService.register(userData);
-    } catch (error) {
-      const message =
-        (error.response?.data?.message) || error.message || error.toString();
-      return thunkAPI.rejectWithValue(message);
-    }
-  }
-);
-
-// Verify OTP
-export const verifyOtp = createAsyncThunk(
-  "auth/verifyOtp",
-  async (otpData, thunkAPI) => {
-    try {
-      return await authService.verifyOtp(otpData);
-    } catch (error) {
-      const message =
-        (error.response?.data?.message) || error.message || error.toString();
-      return thunkAPI.rejectWithValue(message);
-    }
-  }
-);
-
-// Login user
-export const login = createAsyncThunk(
-  "auth/login",
-  async (userData, thunkAPI) => {
-    try {
-      return await authService.login(userData);
-    } catch (error) {
-      const message =
-        (error.response?.data?.message) || error.message || error.toString();
-      return thunkAPI.rejectWithValue(message);
-    }
-  }
-);
-
-// Forgot Password
-export const forgotPassword = createAsyncThunk(
-  "auth/forgotPassword",
-  async (emailData, thunkAPI) => {
-    try {
-      return await authService.forgotPassword(emailData);
-    } catch (error) {
-      const message =
-        (error.response?.data?.message) || error.message || error.toString();
-      return thunkAPI.rejectWithValue(message);
-    }
-  }
-);
-
-// Reset Password
-export const resetPassword = createAsyncThunk(
-  "auth/resetPassword",
-  async (resetData, thunkAPI) => {
-    try {
-      return await authService.resetPassword(resetData);
-    } catch (error) {
-      const message =
-        (error.response?.data?.message) || error.message || error.toString();
-      return thunkAPI.rejectWithValue(message);
-    }
-  }
-);
-
-// Logout user
-export const logout = createAsyncThunk("auth/logout", async () => {
-  await authService.logout();
-});
-
-// --- The Slice ---
-
-export const authSlice = createSlice({
-  name: "auth",
-  initialState,
-  reducers: {
-    reset: (state) => {
-      state.isLoading = false;
-      state.isError = false;
-      state.isLoginSuccess = false;
-      state.isRegisterSuccess = false;
-      state.isForgotPasswordSuccess = false;
-      state.isResetSuccess = false;
-      state.isOtpVerifySuccess = false; // Added to reset
-      state.message = "";
+const useStyles = makeStyles((theme) => ({
+  pageWrapper: {
+    background: `linear-gradient(to right, ${colors.gradientStart} 0%, ${colors.gradientEnd} 100%)`,
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: theme.spacing(4, 2),
+  },
+  formCard: {
+    width: "50%",
+    maxWidth: "500px",
+    minWidth: "320px",
+    padding: theme.spacing(3),
+    borderRadius: "16px",
+    backgroundColor: colors.cardBg,
+    backdropFilter: "blur(10px)",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.1)",
+  },
+  title: {
+    textAlign: "center",
+    fontWeight: "bold",
+    color: colors.textDark,
+    marginBottom: theme.spacing(1),
+  },
+  subtitle: {
+    textAlign: "center",
+    color: colors.textMuted,
+    marginBottom: theme.spacing(4),
+  },
+  inputField: {
+    "& label.Mui-focused": { color: colors.primary },
+    "& .MuiOutlinedInput-root": {
+      "& fieldset": { borderColor: colors.borderColor },
+      "&:hover fieldset": { borderColor: colors.primary },
+      "&.Mui-focused fieldset": { borderColor: colors.primary },
     },
   },
-  extraReducers: (builder) => {
-    builder
-      .addCase(register.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(register.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isRegisterSuccess = true;
-        state.message = action.payload.message || "Registration successful. Please verify OTP.";
-      })
-      .addCase(register.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isError = true;
-        state.message = action.payload;
-        state.user = null;
-      })
-      .addCase(verifyOtp.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(verifyOtp.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isOtpVerifySuccess = true; // Fixed: Use isOtpVerifySuccess
-        state.isAuthenticated = true;
-        state.user = action.payload.data.user; // Updated to match backend response
-        state.message = action.payload.message || "OTP verified successfully.";
-      })
-      .addCase(verifyOtp.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isError = true;
-        state.message = action.payload;
-      })
-      .addCase(login.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(login.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isLoginSuccess = true;
-        state.isAuthenticated = true;
-        state.user = action.payload;
-      })
-      .addCase(login.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isError = true;
-        state.message = action.payload;
-        state.user = null;
-        state.isAuthenticated = false;
-      })
-      .addCase(forgotPassword.pending, (state) => {
-        state.isForgotPasswordLoading = true;
-      })
-      .addCase(forgotPassword.fulfilled, (state, action) => {
-        state.isForgotPasswordLoading = false;
-        state.isForgotPasswordSuccess = true;
-        state.message = action.payload.message;
-      })
-      .addCase(forgotPassword.rejected, (state, action) => {
-        state.isForgotPasswordLoading = false;
-        state.isError = true;
-        state.message = action.payload;
-      })
-      .addCase(resetPassword.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(resetPassword.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isResetSuccess = true;
-        state.message = action.payload.message || "Password reset successfully.";
-      })
-      .addCase(resetPassword.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isError = true;
-        state.message = action.payload;
-      })
-      .addCase(logout.fulfilled, (state) => {
-        state.user = null;
-        state.isAuthenticated = false;
-        state.isOtpVerifySuccess = false; // Reset OTP verification state
-      });
+  submitButton: {
+    backgroundColor: colors.primary,
+    color: "#ffffff",
+    fontWeight: "bold",
+    borderRadius: "8px",
+    padding: theme.spacing(1.5, 0),
+    marginTop: theme.spacing(2),
+    "&:hover": { backgroundColor: colors.primaryHover },
   },
-});
+  noteHelp: {
+    textAlign: "center",
+    marginTop: theme.spacing(3),
+    fontSize: "14px",
+    color: colors.textMuted,
+    "& a": {
+      color: colors.primary,
+      fontWeight: "bold",
+      textDecoration: "none",
+    },
+  },
+  resendLink: {
+    color: colors.primary,
+    fontWeight: "bold",
+    cursor: "pointer",
+    textDecoration: "none",
+    "&:hover": {
+      textDecoration: "underline",
+    },
+  }, // Removed any potential trailing comma
+}));
 
-export const { reset } = authSlice.actions;
-export default authSlice.reducer;
+const OtpVerificationPage = () => {
+  const classes = useStyles();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
+
+  const { isLoading, isError, isOtpVerifySuccess, message, user } = useSelector(
+    (state) => state.auth
+  );
+
+  const email = location.state?.email || "";
+  const [otp, setOtp] = useState("");
+
+  useEffect(() => {
+    if (!email) {
+      toast.error("No email found. Please register first.");
+      navigate("/register");
+      return;
+    }
+
+    if (isError) {
+      toast.error(message);
+      dispatch(reset());
+      return;
+    }
+
+    if (isOtpVerifySuccess && user) {
+      toast.success(message || "Verification successful! You are now logged in.");
+      navigate("/");
+      dispatch(reset());
+      return;
+    }
+  }, [email, isError, isOtpVerifySuccess, message, navigate, dispatch, user]);
+
+  const submitForm = (e) => {
+    e.preventDefault();
+    if (!otp || otp.length !== 6) {
+      toast.error("Please enter a valid 6-digit OTP.");
+      return;
+    }
+
+    const otpData = { email, otp };
+    console.log("Submitting OTP data:", otpData);
+    dispatch(verifyOtp(otpData));
+  };
+
+  const resendOtp = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error("No email found. Please register again.");
+      navigate("/register");
+      return;
+    }
+    try {
+      await dispatch(register({ email })).unwrap();
+      toast.success("A new OTP has been sent to your email.");
+    } catch (error) {
+      toast.error(error || "Failed to resend OTP. Please try again.");
+    }
+  };
+
+  return (
+    <div className={classes.pageWrapper}>
+      <Card className={classes.formCard}>
+        <CardContent>
+          <Typography variant="h4" className={classes.title}>
+            Verify Account
+          </Typography>
+          <Typography className={classes.subtitle}>
+            An OTP has been sent to <strong>{email || "your email"}</strong>.
+            Please enter it below.
+          </Typography>
+          <form onSubmit={submitForm}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="6-Digit OTP"
+                  name="otp"
+                  value={otp}
+                  variant="outlined"
+                  onChange={(e) => setOtp(e.target.value.trim())}
+                  className={classes.inputField}
+                  required
+                  inputProps={{ maxLength: 6 }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  fullWidth
+                  className={classes.submitButton}
+                  type="submit"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Verifying..." : "Verify Account"}
+                </Button>
+              </Grid>
+            </Grid>
+          </form>
+          <Typography className={classes.noteHelp}>
+            Didn't receive an OTP?{" "}
+            <a href="#" onClick={resendOtp} className={classes.resendLink}>
+              Resend OTP
+            </a>{" "}
+            or <Link to="/register">Register again</Link>
+          </Typography>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default OtpVerificationPage;
