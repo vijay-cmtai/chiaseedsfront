@@ -11,11 +11,11 @@ const initialState = {
   isRegisterSuccess: false,
   isLoading: false,
   isAuthenticated: user ? true : false,
+  isOtpVerifySuccess: false, // Added explicitly for clarity
   message: "",
   isForgotPasswordLoading: false,
   isForgotPasswordSuccess: false,
-  // === 1. NAYA STATE ADD KIYA GAYA HAI ===
-  isResetSuccess: false, 
+  isResetSuccess: false,
 };
 
 // --- Async Thunk Functions ---
@@ -28,9 +28,7 @@ export const register = createAsyncThunk(
       return await authService.register(userData);
     } catch (error) {
       const message =
-        (error.response?.data?.message) ||
-        error.message ||
-        error.toString();
+        (error.response?.data?.message) || error.message || error.toString();
       return thunkAPI.rejectWithValue(message);
     }
   }
@@ -44,9 +42,7 @@ export const verifyOtp = createAsyncThunk(
       return await authService.verifyOtp(otpData);
     } catch (error) {
       const message =
-        (error.response?.data?.message) ||
-        error.message ||
-        error.toString();
+        (error.response?.data?.message) || error.message || error.toString();
       return thunkAPI.rejectWithValue(message);
     }
   }
@@ -60,9 +56,7 @@ export const login = createAsyncThunk(
       return await authService.login(userData);
     } catch (error) {
       const message =
-        (error.response?.data?.message) ||
-        error.message ||
-        error.toString();
+        (error.response?.data?.message) || error.message || error.toString();
       return thunkAPI.rejectWithValue(message);
     }
   }
@@ -76,31 +70,25 @@ export const forgotPassword = createAsyncThunk(
       return await authService.forgotPassword(emailData);
     } catch (error) {
       const message =
-        (error.response?.data?.message) ||
-        error.message ||
-        error.toString();
+        (error.response?.data?.message) || error.message || error.toString();
       return thunkAPI.rejectWithValue(message);
     }
   }
 );
 
-// === 2. RESET PASSWORD KE LIYE NAYA ASYNC THUNK ADD KIYA GAYA HAI ===
+// Reset Password
 export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async (resetData, thunkAPI) => {
     try {
-      // resetData = { token, password }
       return await authService.resetPassword(resetData);
-    } catch (error)      {
+    } catch (error) {
       const message =
-        (error.response?.data?.message) ||
-        error.message ||
-        error.toString();
+        (error.response?.data?.message) || error.message || error.toString();
       return thunkAPI.rejectWithValue(message);
     }
   }
 );
-
 
 // Logout user
 export const logout = createAsyncThunk("auth/logout", async () => {
@@ -119,33 +107,71 @@ export const authSlice = createSlice({
       state.isLoginSuccess = false;
       state.isRegisterSuccess = false;
       state.isForgotPasswordSuccess = false;
-      // === 3. NAYE STATE KO RESET KAREIN ===
-      state.isResetSuccess = false; 
+      state.isResetSuccess = false;
+      state.isOtpVerifySuccess = false; // Added to reset
       state.message = "";
     },
   },
   extraReducers: (builder) => {
     builder
-      // ... Register, Verify OTP, Login, Forgot Password, Logout cases ...
-      .addCase(register.pending, (state) => { state.isLoading = true; })
-      .addCase(register.fulfilled, (state, action) => { state.isLoading = false; state.isRegisterSuccess = true; state.message = action.payload.message || "Registration successful. Please verify OTP."; })
-      .addCase(register.rejected, (state, action) => { state.isLoading = false; state.isError = true; state.message = action.payload; state.user = null; })
-      
-      .addCase(verifyOtp.pending, (state) => { state.isLoading = true; })
-      .addCase(verifyOtp.fulfilled, (state, action) => { state.isLoading = false; state.isLoginSuccess = true; state.isAuthenticated = true; state.user = action.payload; })
-      .addCase(verifyOtp.rejected, (state, action) => { state.isLoading = false; state.isError = true; state.message = action.payload; })
-      
-      .addCase(login.pending, (state) => { state.isLoading = true; })
-      .addCase(login.fulfilled, (state, action) => { state.isLoading = false; state.isLoginSuccess = true; state.isAuthenticated = true; state.user = action.payload; })
-      .addCase(login.rejected, (state, action) => { state.isLoading = false; state.isError = true; state.message = action.payload; state.user = null; state.isAuthenticated = false; })
-      
-      .addCase(forgotPassword.pending, (state) => { state.isForgotPasswordLoading = true; })
-      .addCase(forgotPassword.fulfilled, (state, action) => { state.isForgotPasswordLoading = false; state.isForgotPasswordSuccess = true; state.message = action.payload.message; })
-      .addCase(forgotPassword.rejected, (state, action) => { state.isForgotPasswordLoading = false; state.isError = true; state.message = action.payload; })
-      
-      .addCase(logout.fulfilled, (state) => { state.user = null; state.isAuthenticated = false; })
-
-      // === 4. RESET PASSWORD KE LIYE NAYE REDUCERS ADD KIYE GAYE HAIN ===
+      .addCase(register.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(register.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isRegisterSuccess = true;
+        state.message = action.payload.message || "Registration successful. Please verify OTP.";
+      })
+      .addCase(register.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+        state.user = null;
+      })
+      .addCase(verifyOtp.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(verifyOtp.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isOtpVerifySuccess = true; // Fixed: Use isOtpVerifySuccess
+        state.isAuthenticated = true;
+        state.user = action.payload.data.user; // Updated to match backend response
+        state.message = action.payload.message || "OTP verified successfully.";
+      })
+      .addCase(verifyOtp.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(login.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(login.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isLoginSuccess = true;
+        state.isAuthenticated = true;
+        state.user = action.payload;
+      })
+      .addCase(login.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+        state.user = null;
+        state.isAuthenticated = false;
+      })
+      .addCase(forgotPassword.pending, (state) => {
+        state.isForgotPasswordLoading = true;
+      })
+      .addCase(forgotPassword.fulfilled, (state, action) => {
+        state.isForgotPasswordLoading = false;
+        state.isForgotPasswordSuccess = true;
+        state.message = action.payload.message;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.isForgotPasswordLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
       .addCase(resetPassword.pending, (state) => {
         state.isLoading = true;
       })
@@ -158,6 +184,11 @@ export const authSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
+      })
+      .addCase(logout.fulfilled, (state) => {
+        state.user = null;
+        state.isAuthenticated = false;
+        state.isOtpVerifySuccess = false; // Reset OTP verification state
       });
   },
 });
