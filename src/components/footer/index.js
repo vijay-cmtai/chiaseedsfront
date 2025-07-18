@@ -107,23 +107,8 @@ const Footer = (props) => {
                   </p> */}
                   <ul>
                     <li>
-                      <Link to="/">
-                        <i className="ti-facebook"></i>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/">
-                        <i className="ti-twitter-alt"></i>
-                      </Link>
-                    </li>
-                    <li>
                       <Link to="https://www.instagram.com/naraaglobal?utm_source=qr&igsh=NGVxOW5idmtzN2x1">
                         <i className="ti-instagram"></i>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/">
-                        <i className="ti-google"></i>
                       </Link>
                     </li>
                   </ul>
@@ -143,9 +128,11 @@ const Footer = (props) => {
                       <li>
                         <i className="fi flaticon-call"></i>+91 7620945925
                       </li>
+                      {/* ✅ FIX: Added the second phone number from the Razorpay email for compliance. */}
+
                       <li>
                         <i className="fi flaticon-envelope"></i>{" "}
-                        sahilpardakee180@gmail.com
+                        hello@naraaglobal.com
                       </li>
                     </ul>
                   </div>
