@@ -196,7 +196,7 @@ const SignUpPage = () => {
                   <FormLabel component="legend">Register as</FormLabel>
                   <RadioGroup row aria-label="role" name="role" value={value.role} onChange={changeHandler}>
                     <FormControlLabel value="user" control={<Radio />} label="User" />
-                    <FormControlLabel value="admin" control={<Radio />} label="Admin" />
+                    // <FormControlLabel value="admin" control={<Radio />} label="Admin" />
                   </RadioGroup>
                 </FormControl>
               </Grid>
