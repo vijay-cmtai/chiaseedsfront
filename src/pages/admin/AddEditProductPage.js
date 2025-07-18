@@ -1,5 +1,3 @@
-// src/pages/admin/AddEditProductPage.js
-
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -91,13 +89,17 @@ const AddEditProductPage = () => {
   } = useSelector((state) => state.admin || {});
 
   // --- YAHAN BADLAAV KIYA GAYA HAI ---
-  // Form state mein weight aur dimensions add karein
+  // Form state mein naye fields add kiye gaye hain
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    price: "",
+    originalPrice: "", // Naya field (MRP)
+    price: "", // Ab ye discounted price hai
     stock: "",
     category: "",
+    packagingType: "", // Naya field
+    seedType: "", // Naya field
+    speciality: "", // Naya field
     weight: "",
     length: "",
     breadth: "",
@@ -110,14 +112,18 @@ const AddEditProductPage = () => {
     if (isEditing) {
       const productToEdit = products.find((p) => p._id === productId);
       if (productToEdit) {
+        // --- YAHAN BADLAAV KIYA GAYA HAI ---
+        // Edit mode mein naye fields ko bhi state mein set kiya gaya hai
         setFormData({
           name: productToEdit.name || "",
           description: productToEdit.description || "",
+          originalPrice: productToEdit.originalPrice || "",
           price: productToEdit.price || "",
           stock: productToEdit.stock || "",
           category: productToEdit.category || "",
-          // --- YAHAN BADLAAV KIYA GAYA HAI ---
-          // Weight aur dimensions ko bhi fill karein
+          packagingType: productToEdit.packagingType || "",
+          seedType: productToEdit.seedType || "",
+          speciality: productToEdit.speciality || "",
           weight: productToEdit.weight || "",
           length: productToEdit.dimensions?.length || "",
           breadth: productToEdit.dimensions?.breadth || "",
@@ -146,8 +152,8 @@ const AddEditProductPage = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
-    // --- YAHAN BADLAAV KIYA GAYA HAI ---
-    // FormData mein weight aur dimensions ko bhi append karein
+    // FormData ab state ke saare fields automatically le lega,
+    // isliye yahan direct change ki zaroorat nahi hai.
     const productDataForCreation = new FormData();
     Object.keys(formData).forEach((key) => {
       productDataForCreation.append(key, formData[key]);
@@ -156,13 +162,14 @@ const AddEditProductPage = () => {
       productDataForCreation.append("images", productImage);
     }
 
-    // Update ke liye plain object banayein
+    // Update ke liye plain object bhi state se saare fields le lega.
     const productDataForUpdate = { ...formData, _id: productId };
 
     let resultAction;
     if (isEditing) {
       // Note: Backend mein image update ka logic alag se banana padega.
-      // Abhi ke liye sirf text data update ho raha hai.
+      // Yeh code maan kar chal raha hai ki update ke waqt image nahi bhej rahe.
+      // Agar image update karna hai, to aapko update ke liye bhi FormData ka use karna hoga.
       resultAction = await dispatch(updateProduct(productDataForUpdate));
     } else {
       resultAction = await dispatch(createProduct(productDataForCreation));
@@ -212,19 +219,33 @@ const AddEditProductPage = () => {
                       onChange={handleInputChange}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+
+                  {/* --- YAHAN PRICE AUR STOCK FIELDS UPDATE KIYE GAYE HAIN --- */}
+                  <Grid item xs={12} sm={6} md={4}>
+                    <TextField
+                      fullWidth
+                      required
+                      name="originalPrice"
+                      label="Original Price (MRP)"
+                      type="number"
+                      variant="outlined"
+                      value={formData.originalPrice}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
                     <TextField
                       fullWidth
                       required
                       name="price"
-                      label="Price (₹)"
+                      label="Discounted Price (₹)"
                       type="number"
                       variant="outlined"
                       value={formData.price}
                       onChange={handleInputChange}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid item xs={12} sm={6} md={4}>
                     <TextField
                       fullWidth
                       required
@@ -236,6 +257,7 @@ const AddEditProductPage = () => {
                       onChange={handleInputChange}
                     />
                   </Grid>
+
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
@@ -255,13 +277,57 @@ const AddEditProductPage = () => {
                       label="Product Description"
                       variant="outlined"
                       multiline
-                      rows={6}
+                      rows={4}
                       value={formData.description}
                       onChange={handleInputChange}
                     />
                   </Grid>
 
-                  {/* --- YAHAN NAYE FIELDS ADD KIYE GAYE HAIN --- */}
+                  {/* --- YAHAN NAYE PRODUCT DETAILS FIELDS ADD KIYE GAYE HAIN --- */}
+                  <Grid item xs={12}>
+                    <Typography
+                      variant="h6"
+                      className={classes.sectionTitle}
+                      style={{ marginTop: "20px" }}
+                    >
+                      Additional Details
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      fullWidth
+                      required
+                      name="packagingType"
+                      label="Packaging Type"
+                      variant="outlined"
+                      value={formData.packagingType}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      fullWidth
+                      required
+                      name="seedType"
+                      label="Seed Type"
+                      variant="outlined"
+                      value={formData.seedType}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      fullWidth
+                      required
+                      name="speciality"
+                      label="Speciality"
+                      variant="outlined"
+                      value={formData.speciality}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+
+                  {/* Shipping Details Section */}
                   <Grid item xs={12}>
                     <Typography
                       variant="h6"
