@@ -11,7 +11,7 @@ const initialState = {
   isRegisterSuccess: false,
   isLoading: false,
   isAuthenticated: user ? true : false,
-  isOtpVerifySuccess: false, // Added explicitly for clarity
+  isOtpVerifySuccess: false,
   message: "",
   isForgotPasswordLoading: false,
   isForgotPasswordSuccess: false,
@@ -39,7 +39,14 @@ export const verifyOtp = createAsyncThunk(
   "auth/verifyOtp",
   async (otpData, thunkAPI) => {
     try {
-      return await authService.verifyOtp(otpData);
+      const response = await authService.verifyOtp(otpData);
+      
+      // Store user data in localStorage after successful verification
+      if (response.data && response.data.user) {
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+      }
+      
+      return response;
     } catch (error) {
       const message =
         (error.response?.data?.message) || error.message || error.toString();
@@ -108,7 +115,7 @@ export const authSlice = createSlice({
       state.isRegisterSuccess = false;
       state.isForgotPasswordSuccess = false;
       state.isResetSuccess = false;
-      state.isOtpVerifySuccess = false; // Added to reset
+      state.isOtpVerifySuccess = false;
       state.message = "";
     },
   },
@@ -116,6 +123,8 @@ export const authSlice = createSlice({
     builder
       .addCase(register.pending, (state) => {
         state.isLoading = true;
+        state.isError = false;
+        state.message = "";
       })
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -130,21 +139,27 @@ export const authSlice = createSlice({
       })
       .addCase(verifyOtp.pending, (state) => {
         state.isLoading = true;
+        state.isError = false;
+        state.message = "";
       })
       .addCase(verifyOtp.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.isOtpVerifySuccess = true; // Fixed: Use isOtpVerifySuccess
+        state.isOtpVerifySuccess = true;
         state.isAuthenticated = true;
-        state.user = action.payload.data.user; // Updated to match backend response
+        // Handle both possible response structures
+        state.user = action.payload.data?.user || action.payload.user;
         state.message = action.payload.message || "OTP verified successfully.";
       })
       .addCase(verifyOtp.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
+        state.user = null;
       })
       .addCase(login.pending, (state) => {
         state.isLoading = true;
+        state.isError = false;
+        state.message = "";
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -161,6 +176,8 @@ export const authSlice = createSlice({
       })
       .addCase(forgotPassword.pending, (state) => {
         state.isForgotPasswordLoading = true;
+        state.isError = false;
+        state.message = "";
       })
       .addCase(forgotPassword.fulfilled, (state, action) => {
         state.isForgotPasswordLoading = false;
@@ -174,6 +191,8 @@ export const authSlice = createSlice({
       })
       .addCase(resetPassword.pending, (state) => {
         state.isLoading = true;
+        state.isError = false;
+        state.message = "";
       })
       .addCase(resetPassword.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -188,7 +207,9 @@ export const authSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;
-        state.isOtpVerifySuccess = false; // Reset OTP verification state
+        state.isOtpVerifySuccess = false;
+        state.isLoginSuccess = false;
+        state.isRegisterSuccess = false;
       });
   },
 });
