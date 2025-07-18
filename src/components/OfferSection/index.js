@@ -96,21 +96,18 @@ const styles = {
   },
 };
 
-// Data has been moved inside the component file for completeness
 // *** YAHAN PAR CONTENT UPDATE KIYA GAYA HAI ***
+// This data is now based on the provided nutritional analysis image (per 100g).
 const nutritionData = [
-  { label: "Serving Size", value: "28g (2 tbsp)" },
-  { label: "Calories", value: "138" },
-  { label: "Protein", value: "4.7g" },
-  { label: "Fat", value: "8.7g" },
-  { label: "Carbohydrates", value: "12g" },
-  { label: "Fiber", value: "9.8g" },
-  { label: "Calcium", value: "179mg (13% DV)" },
-  { label: "Magnesium", value: "95mg (23% DV)" },
-  { label: "Phosphorus", value: "244mg (20% DV)" }, // <-- Naya content
-  { label: "Omega-3", value: "4915mg" },
-  { label: "Iron", value: "2.2mg (12% DV)" },      // <-- Naya content
-  { label: "Zinc", value: "1.3mg (12% DV)" },      // <-- Naya content
+  { label: "Basis", value: "per 100g" },
+  { label: "Energy Value", value: "515.28 Kcal" },
+  { label: "Protein", value: "22.57 g" },
+  { label: "Total Fat", value: "32.08 g" },
+  { label: "Carbohydrate", value: "34.07 g" },
+  { label: "Total Sugars", value: "< 1.0 g" },
+  { label: "Added Sugars", value: "< 1.0 g" },
+  { label: "Moisture", value: "6.02 g" },
+  { label: "Total Ash", value: "5.26 g" },
 ];
 
 
