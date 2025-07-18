@@ -3,6 +3,7 @@ import Slider from "react-slick";
 import { Link } from "react-router-dom";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import ship1 from "../../images/ship1.png"; // Importing the ship image
 
 // --- Color Palette (Matching other components) ---
 const colors = {
@@ -16,15 +17,22 @@ const colors = {
 // --- Styles ---
 const styles = {
   teamSection: {
-    padding: "80px 0", // Thoda padding kam kiya
+    padding: "80px 0",
     background: `linear-gradient(to right, ${colors.gradientStart} 0%, ${colors.gradientEnd} 100%)`,
   },
   sectionHeader: {
     textAlign: "center",
-    marginBottom: "50px", // Thoda margin kam kiya
+    marginBottom: "50px",
   },
+  // === 1. STYLE KO IMAGE KE LIYE UPDATE KIYA GAYA HAI ===
+  shipLogo: {
+    width: "70px", // Image ki chaudai
+    height: "auto", // Lambai apne aap adjust ho jayegi
+    marginBottom: "15px", // Logo aur title ke beech mein jagah
+  },
+  // ====================================================
   sectionTitle: {
-    fontSize: "38px", // Font size chhota kiya
+    fontSize: "38px",
     fontWeight: 900,
     color: colors.textDark,
   },
@@ -32,16 +40,15 @@ const styles = {
     color: colors.primaryButton,
   },
   sectionSubtitle: {
-    fontSize: "16px", // Font size chhota kiya
+    fontSize: "16px",
     color: colors.textDark,
     maxWidth: "600px",
     margin: "15px auto 0",
     lineHeight: "1.7",
   },
-  // ++ YAHAN NAYA STYLE ADD KAREIN ++
   sliderContainer: {
-    maxWidth: "400px", // Card ki max-width set ki. Aap ise 350px ya 450px bhi kar sakte hain.
-    margin: "0 auto", // Isse slider center mein rahega.
+    maxWidth: "400px",
+    margin: "0 auto",
   },
   teamCard: {
     backgroundColor: "rgba(255, 255, 255, 0.7)",
@@ -67,7 +74,7 @@ const styles = {
     padding: "25px 20px",
   },
   name: {
-    fontSize: "20px", // Font size chhota kiya
+    fontSize: "20px",
     fontWeight: "700",
     color: colors.textDark,
     margin: "0 0 5px 0",
@@ -103,25 +110,14 @@ const TeamSection = () => {
     dots: true,
     arrows: false,
     speed: 1000,
-    slidesToShow: 1, // Ek hi slide dikhegi
+    slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
-    // Responsive settings ab zaroori nahi agar aap hamesha 1 hi dikhana chahte hain,
-    // lekin rakhne se koi nuksaan nahi.
     responsive: [
-      {
-        breakpoint: 1200,
-        settings: { slidesToShow: 1 },
-      },
-      {
-        breakpoint: 992,
-        settings: { slidesToShow: 1 },
-      },
-      {
-        breakpoint: 768,
-        settings: { slidesToShow: 1 },
-      },
+      { breakpoint: 1200, settings: { slidesToShow: 1 } },
+      { breakpoint: 992, settings: { slidesToShow: 1 } },
+      { breakpoint: 768, settings: { slidesToShow: 1 } },
     ],
   };
 
@@ -138,15 +134,17 @@ const TeamSection = () => {
     <section style={styles.teamSection}>
       <div className="container">
         <div style={styles.sectionHeader}>
+          {/* === 2. ICON KI JAGAH IMAGE TAG USE KIYA GAYA HAI === */}
+          <img src={ship1} alt="Ship and Anchor Logo" style={styles.shipLogo} />
+          {/* ==================================================== */}
           <h2 style={styles.sectionTitle}>
-            Our Expert <span style={styles.titleSpan}>Team</span>
+            Captain of the <span style={styles.titleSpan}>Ship</span>
           </h2>
           <p style={styles.sectionSubtitle}>
             Meet the passionate individuals dedicated to bringing you the
             highest quality chia seeds and promoting a healthy lifestyle.
           </p>
         </div>
-        {/* ++ YAHAN STYLE APPLY KAREIN ++ */}
         <div className="team-slider" style={styles.sliderContainer}>
           <Slider {...sliderSettings}>
             {Teams.map((team, index) => (
