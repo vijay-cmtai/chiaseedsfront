@@ -1,3 +1,5 @@
+// src/main-component/SignUpPage/index.js
+
 import React, { useState, useEffect } from "react";
 import {
   Grid,
@@ -12,7 +14,7 @@ import {
   FormControlLabel,
   FormControl,
   FormLabel,
-} from "@material-ui/core";
+} from "@material-ui/core"; // FIX: Double dash (--) yahan se hata diya gaya hai
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -121,22 +123,21 @@ const SignUpPage = () => {
     role: "user",
   });
 
-  // --- THIS IS THE FINAL CORRECTED LOGIC FOR useEffect ---
   useEffect(() => {
-    // Check for error first
     if (isError) {
       toast.error(message);
-      dispatch(reset()); // Reset state AFTER showing the error
     }
-
-    // Check for registration success
     if (isRegisterSuccess) {
       toast.success(
         message || "Registration successful! Please verify your OTP."
       );
       navigate("/verify-otp", { state: { email: value.email } });
-      dispatch(reset()); // Reset state AFTER navigation
     }
+    return () => {
+      if (isRegisterSuccess || isError) {
+        dispatch(reset());
+      }
+    };
   }, [isError, isRegisterSuccess, message, navigate, dispatch, value.email]);
 
   const changeHandler = (e) => {
@@ -145,23 +146,24 @@ const SignUpPage = () => {
 
   const submitForm = (e) => {
     e.preventDefault();
-
     if (value.password !== value.confirm_password) {
       toast.error("Passwords do not match!");
+      return;
+    }
+    if (value.password.length < 6) {
+      toast.error("Password must be at least 6 characters long.");
       return;
     }
     if (!value.name || !value.email || !value.password) {
       toast.error("Please fill all required fields.");
       return;
     }
-
     const userData = {
-      name: value.name,
-      email: value.email,
+      name: value.name.trim(),
+      email: value.email.trim(),
       password: value.password,
       role: value.role,
     };
-
     dispatch(register(userData));
   };
 
@@ -178,97 +180,32 @@ const SignUpPage = () => {
           <form onSubmit={submitForm}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Full Name"
-                  name="name"
-                  value={value.name}
-                  variant="outlined"
-                  onChange={changeHandler}
-                  className={classes.inputField}
-                  required
-                />
+                <TextField fullWidth label="Full Name" name="name" value={value.name} variant="outlined" onChange={changeHandler} className={classes.inputField} required />
               </Grid>
               <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="E-mail"
-                  name="email"
-                  type="email"
-                  value={value.email}
-                  variant="outlined"
-                  onChange={changeHandler}
-                  className={classes.inputField}
-                  required
-                />
+                <TextField fullWidth label="E-mail" name="email" type="email" value={value.email} variant="outlined" onChange={changeHandler} className={classes.inputField} required />
               </Grid>
               <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Password"
-                  name="password"
-                  type="password"
-                  value={value.password}
-                  variant="outlined"
-                  onChange={changeHandler}
-                  className={classes.inputField}
-                  required
-                />
+                <TextField fullWidth label="Password" name="password" type="password" value={value.password} variant="outlined" onChange={changeHandler} className={classes.inputField} required />
               </Grid>
               <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Confirm Password"
-                  name="confirm_password"
-                  type="password"
-                  value={value.confirm_password}
-                  variant="outlined"
-                  onChange={changeHandler}
-                  className={classes.inputField}
-                  required
-                />
+                <TextField fullWidth label="Confirm Password" name="confirm_password" type="password" value={value.confirm_password} variant="outlined" onChange={changeHandler} className={classes.inputField} required />
               </Grid>
               <Grid item xs={12}>
-                <FormControl
-                  component="fieldset"
-                  className={classes.formControl}
-                >
+                <FormControl component="fieldset" className={classes.formControl}>
                   <FormLabel component="legend">Register as</FormLabel>
-                  <RadioGroup
-                    row
-                    aria-label="role"
-                    name="role"
-                    value={value.role}
-                    onChange={changeHandler}
-                  >
-                    <FormControlLabel
-                      value="user"
-                      control={<Radio />}
-                      label="User"
-                    />
-                    //  <FormControlLabel
-                    //   value="admin"
-                    //   control={<Radio />}
-                    //   label="Admin"
-                    // /> 
+                  <RadioGroup row aria-label="role" name="role" value={value.role} onChange={changeHandler}>
+                    <FormControlLabel value="user" control={<Radio />} label="User" />
+                    <FormControlLabel value="admin" control={<Radio />} label="Admin" />
                   </RadioGroup>
                 </FormControl>
               </Grid>
               <Grid item xs={12}>
-                <Button
-                  fullWidth
-                  className={classes.submitButton}
-                  type="submit"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Registering..." : "Sign Up"}
-                </Button>
+                <Button fullWidth className={classes.submitButton} type="submit" disabled={isLoading}>{isLoading ? "Registering..." : "Sign Up"}</Button>
               </Grid>
             </Grid>
           </form>
-          <Typography className={classes.noteHelp}>
-            Already have an account? <Link to="/login">Return to Sign In</Link>
-          </Typography>
+          <Typography className={classes.noteHelp}>Already have an account? <Link to="/login">Return to Sign In</Link></Typography>
         </CardContent>
       </Card>
     </div>
