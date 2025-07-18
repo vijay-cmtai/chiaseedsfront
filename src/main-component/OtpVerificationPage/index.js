@@ -14,7 +14,7 @@ import {
 import { toast } from "react-toastify";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { verifyOtp, reset } from "./authSlice"; // Path ko check karein, shayad ../../features/auth/authSlice ho
+import { verifyOtp, reset } from "../../features/auth/authSlice"; // Path ko check karein, shayad ../../features/auth/authSlice ho
 
 // --- Theme Colors and Styles Definition ---
 const colors = {
