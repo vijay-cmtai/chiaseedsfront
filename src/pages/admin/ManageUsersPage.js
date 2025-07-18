@@ -1,14 +1,11 @@
-// src/pages/admin/ManageUsersPage.js (Mobile Responsive Version)
+// src/pages/admin/ManageUsersPage.js (Corrected and Final Version)
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  getAllUsers,
-  updateUser,
-  deleteUser,
-} from "../../features/admin/adminSlice";
+import { getAllUsers, updateUser, deleteUser } from "../../features/admin/adminSlice";
 
 // --- Material-UI Imports ---
+// (Saare Material-UI imports waise hi rahenge)
 import {
   makeStyles,
   Typography,
@@ -35,13 +32,14 @@ import {
   useMediaQuery,
   useTheme,
   CardContent,
-  Divider,
 } from "@material-ui/core";
 import EditIcon from "@material-ui/icons/Edit";
-import BlockIcon from "@material-ui/icons/Block"; // Delete ke liye
+import BlockIcon from "@material-ui/icons/Block";
 import SearchIcon from "@material-ui/icons/Search";
 
+
 // --- Theme colors and Styles ---
+// (Styles poore waise hi rahenge, koi badlav nahi)
 const colors = {
   primary: "#878fba",
   textDark: "#3d2b56",
@@ -57,6 +55,7 @@ const colors = {
 };
 
 const useStyles = makeStyles((theme) => ({
+  // ... (Aapka poora useStyles object yahan aa jayega, usmein koi badlav nahi hai)
   pageContainer: { 
     padding: theme.spacing(3),
     [theme.breakpoints.down('sm')]: {
@@ -232,6 +231,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+
 const ManageUsersPage = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -239,32 +239,36 @@ const ManageUsersPage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const { users = [], status } = useSelector((state) => state.admin || {});
-  // Debug: log users from Redux
-  console.log("ManageUsersPage users:", users);
+  console.log("ManageUsersPage users from Redux:", users); // Debugging
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({ name: "" });
+  // <-- BADLAV YAHAN
+  const [formData, setFormData] = useState({ fullName: "" }); 
   const [searchTerm, setSearchTerm] = useState("");
   
   useEffect(() => {
-    dispatch(getAllUsers());
-  }, [dispatch]);
+    // Sirf users na hone par hi fetch karein, taaki baar baar na ho
+    if (users.length === 0) {
+      dispatch(getAllUsers());
+    }
+  }, [dispatch, users.length]);
 
-  // Use useMemo to filter users instead of useEffect + state
-  const filteredUsers = React.useMemo(
+  // <-- BADLAV YAHAN: user.name ko user.fullName kiya gaya
+  const filteredUsers = useMemo(
     () =>
       users.filter(
         (user) =>
-          user.name &&
-          user.name.toLowerCase().includes(searchTerm.toLowerCase())
+          user.fullName && // Check for fullName
+          user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
       ),
     [searchTerm, users]
   );
 
   const handleOpenEditDialog = (user) => {
     setEditingUser(user);
-    setFormData({ name: user.name });
+    // <-- BADLAV YAHAN
+    setFormData({ fullName: user.fullName });
     setDialogOpen(true);
   };
 
@@ -275,6 +279,7 @@ const ManageUsersPage = () => {
 
   const handleSaveUser = async () => {
     if (!editingUser) return;
+    // <-- BADLAV YAHAN: Ab humara formData { fullName: "..." } bhejega
     const resultAction = await dispatch(
       updateUser({ ...formData, _id: editingUser._id })
     );
@@ -284,11 +289,7 @@ const ManageUsersPage = () => {
   };
 
   const handleDeleteUser = (userId) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this user? This action cannot be undone."
-      )
-    ) {
+    if (window.confirm("Are you sure you want to delete this user?")) {
       dispatch(deleteUser(userId));
     }
   };
@@ -297,43 +298,32 @@ const ManageUsersPage = () => {
   const MobileUserCard = ({ user }) => (
     <Card className={classes.mobileUserCard}>
       <div className={classes.mobileUserHeader}>
+        {/* <-- BADLAV YAHAN */}
         <Avatar src={user.avatar} className={classes.avatar}>
-          {user.name.charAt(0)}
+          {user.fullName ? user.fullName.charAt(0) : 'U'}
         </Avatar>
         <div className={classes.mobileUserInfo}>
+          {/* <-- BADLAV YAHAN */}
           <Typography variant="body1" className={classes.userName}>
-            {user.name}
+            {user.fullName}
           </Typography>
           <Typography variant="body2" className={classes.userEmail}>
             {user.email}
           </Typography>
         </div>
         <div className={classes.mobileUserActions}>
-          <IconButton
-            size="small"
-            onClick={() => handleOpenEditDialog(user)}
-          >
+          <IconButton size="small" onClick={() => handleOpenEditDialog(user)}>
             <EditIcon fontSize="small" />
           </IconButton>
-          <IconButton
-            size="small"
-            style={{ color: colors.red }}
-            onClick={() => handleDeleteUser(user._id)}
-          >
+          <IconButton size="small" style={{ color: colors.red }} onClick={() => handleDeleteUser(user._id)}>
             <BlockIcon fontSize="small" />
           </IconButton>
         </div>
       </div>
       <div className={classes.mobileUserMeta}>
         <div className={classes.mobileChips}>
-          <Chip
-            label={user.role}
-            className={`${classes.chip} ${user.role === "admin" ? classes.roleAdmin : classes.roleUser}`}
-          />
-          <Chip
-            label={user.isVerified ? "Verified" : "Not Verified"}
-            className={`${classes.chip} ${user.isVerified ? classes.statusActive : classes.statusNotVerified}`}
-          />
+          <Chip label={user.role} className={`${classes.chip} ${user.role === "admin" ? classes.roleAdmin : classes.roleUser}`} />
+          <Chip label={user.isVerified ? "Verified" : "Not Verified"} className={`${classes.chip} ${user.isVerified ? classes.statusActive : classes.statusNotVerified}`} />
         </div>
       </div>
     </Card>
@@ -342,10 +332,7 @@ const ManageUsersPage = () => {
   return (
     <div className={classes.pageContainer}>
       <Box className={classes.headerContainer}>
-        <Typography variant="h4" className={classes.pageTitle}>
-          Manage Users
-        </Typography>
-        {/* Add User button hata diya gaya hai */}
+        <Typography variant="h4" className={classes.pageTitle}>Manage Users</Typography>
       </Box>
       
       <Card className={classes.contentCard}>
@@ -357,11 +344,7 @@ const ManageUsersPage = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
+              startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>),
               disableUnderline: true,
             }}
           />
@@ -380,71 +363,42 @@ const ManageUsersPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {status === "loading" && users.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">
-                      <CircularProgress />
-                    </TableCell>
-                  </TableRow>
+                {status === "loading" && filteredUsers.length === 0 ? (
+                  <TableRow><TableCell colSpan={4} align="center"><CircularProgress /></TableCell></TableRow>
                 ) : filteredUsers.length > 0 ? (
                   filteredUsers.map((user) => (
                     <TableRow key={user._id} className={classes.tableRow}>
                       <TableCell>
                         <Box className={classes.userCell}>
+                          {/* <-- BADLAV YAHAN */}
                           <Avatar src={user.avatar} className={classes.avatar}>
-                            {user.name.charAt(0)}
+                            {user.fullName ? user.fullName.charAt(0) : 'U'}
                           </Avatar>
                           <Box>
-                            <Typography
-                              variant="body1"
-                              className={classes.userName}
-                            >
-                              {user.name}
+                            {/* <-- BADLAV YAHAN */}
+                            <Typography variant="body1" className={classes.userName}>
+                              {user.fullName}
                             </Typography>
-                            <Typography
-                              variant="body2"
-                              className={classes.userEmail}
-                            >
+                            <Typography variant="body2" className={classes.userEmail}>
                               {user.email}
                             </Typography>
                           </Box>
                         </Box>
                       </TableCell>
                       <TableCell>
-                        <Chip
-                          label={user.role}
-                          className={`${classes.chip} ${user.role === "admin" ? classes.roleAdmin : classes.roleUser}`}
-                        />
+                        <Chip label={user.role} className={`${classes.chip} ${user.role === "admin" ? classes.roleAdmin : classes.roleUser}`} />
                       </TableCell>
                       <TableCell>
-                        <Chip
-                          label={user.isVerified ? "Verified" : "Not Verified"}
-                          className={`${classes.chip} ${user.isVerified ? classes.statusActive : classes.statusNotVerified}`}
-                        />
+                        <Chip label={user.isVerified ? "Verified" : "Not Verified"} className={`${classes.chip} ${user.isVerified ? classes.statusActive : classes.statusNotVerified}`} />
                       </TableCell>
                       <TableCell align="center">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleOpenEditDialog(user)}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          style={{ color: colors.red }}
-                          onClick={() => handleDeleteUser(user._id)}
-                        >
-                          <BlockIcon fontSize="small" />
-                        </IconButton>
+                        <IconButton size="small" onClick={() => handleOpenEditDialog(user)}><EditIcon fontSize="small" /></IconButton>
+                        <IconButton size="small" style={{ color: colors.red }} onClick={() => handleDeleteUser(user._id)}><BlockIcon fontSize="small" /></IconButton>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">
-                      <Typography>No users found.</Typography>
-                    </TableCell>
-                  </TableRow>
+                  <TableRow><TableCell colSpan={4} align="center"><Typography>No users found.</Typography></TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
@@ -454,37 +408,24 @@ const ManageUsersPage = () => {
         {/* Mobile Card View */}
         <div className={classes.showOnMobile}>
           <CardContent>
-            {status === "loading" && users.length === 0 ? (
-              <Box display="flex" justifyContent="center" p={3}>
-                <CircularProgress />
-              </Box>
+            {status === "loading" && filteredUsers.length === 0 ? (
+              <Box display="flex" justifyContent="center" p={3}><CircularProgress /></Box>
             ) : filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
-                <MobileUserCard key={user._id} user={user} />
-              ))
+              filteredUsers.map((user) => (<MobileUserCard key={user._id} user={user} />))
             ) : (
-              <Box textAlign="center" p={3}>
-                <Typography>No users found.</Typography>
-              </Box>
+              <Box textAlign="center" p={3}><Typography>No users found.</Typography></Box>
             )}
           </CardContent>
         </div>
       </Card>
 
       {/* Edit User Dialog */}
-      <Dialog
-        open={dialogOpen}
-        onClose={handleCloseDialog}
-        aria-labelledby="form-dialog-title"
-        fullWidth
-        maxWidth="xs"
-        classes={{ paper: classes.dialogPaper }}
-        fullScreen={isMobile}
-      >
-        <DialogTitle id="form-dialog-title">Edit User</DialogTitle>
+      <Dialog open={dialogOpen} onClose={handleCloseDialog} fullWidth maxWidth="xs" classes={{ paper: classes.dialogPaper }} fullScreen={isMobile}>
+        <DialogTitle>Edit User</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item xs={12}>
+              {/* <-- BADLAV YAHAN */}
               <TextField
                 autoFocus
                 margin="dense"
@@ -492,39 +433,19 @@ const ManageUsersPage = () => {
                 type="text"
                 fullWidth
                 variant="outlined"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                value={formData.fullName} // <-- Yahan bhi
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} // <-- Yahan bhi
               />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                margin="dense"
-                label="Email Address"
-                type="email"
-                fullWidth
-                variant="outlined"
-                value={editingUser?.email || ""}
-                disabled
-              />
+              <TextField margin="dense" label="Email Address" type="email" fullWidth variant="outlined" value={editingUser?.email || ""} disabled />
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog} color="primary">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSaveUser}
-            className={classes.buttonPrimary}
-            disabled={status === "loading"}
-          >
-            {status === "loading" ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              "Save Changes"
-            )}
+          <Button onClick={handleCloseDialog} color="primary">Cancel</Button>
+          <Button onClick={handleSaveUser} className={classes.buttonPrimary} disabled={status === "loading"}>
+            {status === "loading" ? <CircularProgress size={24} color="inherit" /> : "Save Changes"}
           </Button>
         </DialogActions>
       </Dialog>
