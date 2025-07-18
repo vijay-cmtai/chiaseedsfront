@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 
 // Images ko import karein
+// !! Yakeen kar lein ki ye image path aapke project structure ke hisaab se sahi hai !!
 import popupImage from "../images/slider/img-15.jpg";
 
 // --- Color Palette ---
 const colors = {
+  // ... (colors object waisa hi rahega)
   primaryButton: "#878fba",
   primaryButtonHover: "#6c749d",
   textDark: "#3d2b56",
@@ -17,6 +19,7 @@ const colors = {
 
 // --- Styles ---
 const styles = {
+  // ... (styles object waisa hi rahega)
   popupOverlay: {
     position: "fixed",
     top: 0,
@@ -83,11 +86,6 @@ const styles = {
     textTransform: "uppercase",
     marginBottom: "10px",
   },
-  subtitle: {
-    fontSize: "18px",
-    color: colors.primaryButton,
-    marginBottom: "20px",
-  },
   description: {
     fontSize: "16px",
     color: colors.textDark,
@@ -104,20 +102,6 @@ const styles = {
     outline: "none",
     textAlign: "center",
   },
-  claimButton: {
-    backgroundColor: colors.primaryButton,
-    color: colors.textLight,
-    padding: "15px 40px",
-    border: "none",
-    borderRadius: "10px",
-    textDecoration: "none",
-    transition: "all 0.3s ease",
-    fontSize: "18px",
-    cursor: "pointer",
-    width: "100%",
-    fontWeight: "bold",
-    textTransform: "uppercase",
-  },
   noThanks: {
     marginTop: "15px",
     background: "none",
@@ -129,45 +113,57 @@ const styles = {
 };
 
 const DiscountPopup = () => {
-  const [isVisible, setIsVisible] = useState(false);
+  // ==================== YAHAN BADLAV KIYA GAYA HAI ====================
+  // Testing ke liye, state ko shuru me 'true' set karein taaki popup turant dikhe.
+  const [isVisible, setIsVisible] = useState(true);
+  // ===================================================================
+
   const intervalRef = useRef(null);
 
+  // Ye useEffect popup ko dikhane ke liye hai
   useEffect(() => {
-    // Agar offer claim ho chuka hai, to kuch na karein
+    // Agar testing ke liye state pehle se hi true hai, to ye logic abhi nahi chalega
+    if (isVisible) return;
+
     const offerClaimed = sessionStorage.getItem("offerClaimed");
     if (offerClaimed) {
       return;
     }
 
-    // Shuru me 3 second baad popup dikhayein
     const initialTimer = setTimeout(() => {
       setIsVisible(true);
     }, 3000);
 
-    // Har 1 minute (60000 ms) me popup dikhane ke liye interval set karein
     intervalRef.current = setInterval(() => {
       setIsVisible(true);
     }, 60000);
 
-    // Cleanup function: Jab component unmount ho to timers ko clear karein
     return () => {
       clearTimeout(initialTimer);
       clearInterval(intervalRef.current);
     };
-  }, []); // Khali dependency array, taaki ye sirf ek baar chale
+  }, []);
 
-  // **FIX: Popup ko sirf chhipane ke liye function**
+  // Ye naya useEffect popup ko 5 second baad apne aap hatane ke liye hai
+  useEffect(() => {
+    if (isVisible) {
+      const autoCloseTimer = setTimeout(() => {
+        setIsVisible(false);
+      }, 5000);
+
+      return () => {
+        clearTimeout(autoCloseTimer);
+      };
+    }
+  }, [isVisible]);
+
   const handleCloseTemporarily = () => {
     setIsVisible(false);
-    // Yahan interval ko clear nahi karenge, taaki wo chalta rahe
   };
 
-  // **FIX: Offer claim karne par hamesha ke liye band karne ka function**
   const handleClaimOffer = (e) => {
     e.preventDefault();
     alert("Thank you for subscribing! Your discount code has been sent.");
-
-    // Ab popup ko hamesha ke liye band karein
     setIsVisible(false);
     sessionStorage.setItem("offerClaimed", "true");
     if (intervalRef.current) {
@@ -183,23 +179,24 @@ const DiscountPopup = () => {
     ? { ...styles.popupContainer, ...styles.popupContainerVisible }
     : styles.popupContainer;
 
+  // Agar popup visible nahi hai to kuch bhi render na karein
+  if (!isVisible && !overlayStyle.visibility) {
+    return null;
+  }
+
   return (
     <div style={overlayStyle}>
       <div style={containerStyle}>
         <div style={styles.popupImageSection}></div>
         <div style={styles.popupContentSection}>
-          {/* FIX: Ye button ab temporary close karega */}
           <button onClick={handleCloseTemporarily} style={styles.closeButton}>
             ×
           </button>
-
           <h2 style={styles.title}>Wait! Don't Go!</h2>
-          <p style={styles.subtitle}>Get 33% Off Your First Order</p>
           <p style={styles.description}>
             Join our family and get exclusive access to new products, special
             offers, and health tips.
           </p>
-
           <form onSubmit={handleClaimOffer}>
             <input
               type="email"
@@ -207,12 +204,18 @@ const DiscountPopup = () => {
               required
               style={styles.emailInput}
             />
-            <button type="submit" style={styles.claimButton}>
-              Claim My 15% Off
+            {/* Submit button ko form ke andar rakhna behtar practice hai */}
+            <button
+              type="submit"
+              style={{
+                ...styles.claimButton,
+                backgroundColor: colors.primaryButton,
+                color: colors.textLight,
+              }}
+            >
+              Claim My Discount
             </button>
           </form>
-
-          {/* FIX: Ye button bhi ab temporary close karega */}
           <button onClick={handleCloseTemporarily} style={styles.noThanks}>
             No, I'll pay full price
           </button>
