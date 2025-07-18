@@ -1,5 +1,3 @@
-// src/pages/user/ProfilePage.js (Fixed Text Alignment)
-
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
@@ -198,13 +196,11 @@ const ProfilePage = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  // A safer way to select state to prevent crashes
   const userState = useSelector((state) => state.user);
-
-  // Destructure only after confirming userState exists
   const { profile, status } = userState || {};
 
-  const [formData, setFormData] = useState({ name: "" });
+  // FIX 1: Initialize state with `fullName` to match your database schema.
+  const [formData, setFormData] = useState({ fullName: "" });
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -213,7 +209,6 @@ const ProfilePage = () => {
   const [selectedAvatar, setSelectedAvatar] = useState(null);
 
   useEffect(() => {
-    // Only fetch if profile is not present and we're not already loading
     if (!profile && status !== "loading") {
       dispatch(getMyProfile());
     }
@@ -221,14 +216,17 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (profile) {
-      setFormData({ name: profile.name || "" });
+      // FIX 2: Set the `fullName` property in the state.
+      setFormData({ fullName: profile.fullName || "" });
     }
   }, [profile]);
 
+  // FIX 3: Use `e.target.name` to correctly update the state.
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // FIX 4: Correctly handle password field changes.
   const handlePasswordChange = (e) => {
     setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
   };
@@ -237,13 +235,10 @@ const ProfilePage = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast.error("Please select a valid image file.");
       return;
     }
-
-    // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Image file size should be less than 5MB.");
       return;
@@ -261,17 +256,22 @@ const ProfilePage = () => {
       );
   };
 
+  // FIX 5: Use `formData.fullName` for validation and dispatch.
   const handleProfileSave = (e) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
-      toast.error("Name is required.");
+    if (!formData.fullName || !formData.fullName.trim()) {
+      toast.error("Full Name is required.");
       return;
     }
 
-    dispatch(updateMyProfile({ name: formData.name.trim() }))
+    // Send `fullName` to the API.
+    dispatch(updateMyProfile({ fullName: formData.fullName.trim() }))
       .unwrap()
-      .then(() => toast.success("Profile saved successfully!"))
+      .then(() => {
+        toast.success("Profile saved successfully!");
+        dispatch(getMyProfile()); // Re-fetch profile to ensure data is fresh
+      })
       .catch((err) =>
         toast.error(`Save Failed: ${err || "Please try again."}`)
       );
@@ -279,28 +279,24 @@ const ProfilePage = () => {
 
   const handlePasswordUpdate = (e) => {
     e.preventDefault();
-
     const { currentPassword, newPassword, confirmPassword } = passwordData;
 
     if (!currentPassword || !newPassword || !confirmPassword) {
       toast.error("All password fields are required.");
       return;
     }
-
     if (newPassword !== confirmPassword) {
       toast.error("New passwords do not match.");
       return;
     }
-
     if (newPassword.length < 6) {
       toast.error("Password must be at least 6 characters long.");
       return;
     }
-
+    // Note: You would dispatch an action here to update the password
     toast.info("Password update functionality is not yet implemented.");
   };
 
-  // Improved loading/error check
   if (!userState || (status === "loading" && !profile)) {
     return (
       <Box className={classes.loadingContainer}>
@@ -370,17 +366,18 @@ const ProfilePage = () => {
               >
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
+                    {/* FIX 6: Update TextField `name` and `value` props. */}
                     <TextField
                       fullWidth
                       label="Full Name"
-                      name="name"
+                      name="fullName"
                       variant="outlined"
-                      value={formData.name}
+                      value={formData.fullName}
                       onChange={handleInputChange}
                       className={classes.inputField}
                       required
                       InputLabelProps={{
-                        shrink: true,
+                        shrink: !!formData.fullName, // Shrink label if there is a value
                       }}
                     />
                   </Grid>
@@ -434,9 +431,7 @@ const ProfilePage = () => {
                       value={passwordData.currentPassword}
                       onChange={handlePasswordChange}
                       className={classes.inputField}
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
+                      InputLabelProps={{ shrink: true }}
                     />
                   </Grid>
                   <Grid item xs={12}>
@@ -449,9 +444,7 @@ const ProfilePage = () => {
                       value={passwordData.newPassword}
                       onChange={handlePasswordChange}
                       className={classes.inputField}
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
+                      InputLabelProps={{ shrink: true }}
                     />
                   </Grid>
                   <Grid item xs={12}>
@@ -464,9 +457,7 @@ const ProfilePage = () => {
                       value={passwordData.confirmPassword}
                       onChange={handlePasswordChange}
                       className={classes.inputField}
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
+                      InputLabelProps={{ shrink: true }}
                     />
                   </Grid>
                 </Grid>
