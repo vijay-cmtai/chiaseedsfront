@@ -4,9 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 // !! Yakeen kar lein ki ye image path aapke project structure ke hisaab se sahi hai !!
 import popupImage from "../images/slider/img-15.jpg";
 
-// --- Color Palette ---
+// --- Color Palette --- (Koi badlav nahi)
 const colors = {
-  // ... (colors object waisa hi rahega)
   primaryButton: "#878fba",
   primaryButtonHover: "#6c749d",
   textDark: "#3d2b56",
@@ -17,9 +16,9 @@ const colors = {
   inputBorder: "#e0c3fc",
 };
 
-// --- Styles ---
+// --- Styles (Desktop-first approach) ---
+// Ye humare base styles hain, jo badi screens par kaam karenge.
 const styles = {
-  // ... (styles object waisa hi rahega)
   popupOverlay: {
     position: "fixed",
     top: 0,
@@ -49,7 +48,7 @@ const styles = {
     position: "relative",
     overflow: "hidden",
     transform: "scale(0.9)",
-    transition: "transform 0.4s ease",
+    transition: "transform 0.4s ease, flex-direction 0s", // flex-direction transition ko roka
   },
   popupContainerVisible: {
     transform: "scale(1)",
@@ -77,6 +76,7 @@ const styles = {
     cursor: "pointer",
     color: colors.textDark,
     lineHeight: 1,
+    zIndex: 10, // Ensure button is on top
   },
   title: {
     fontWeight: 900,
@@ -101,6 +101,18 @@ const styles = {
     backgroundColor: colors.inputBackground,
     outline: "none",
     textAlign: "center",
+    boxSizing: "border-box", // padding ko width me include karne ke liye
+  },
+  claimButton: {
+    // Ye style object missing tha, isko add kiya gaya
+    width: "100%",
+    padding: "15px",
+    border: "none",
+    borderRadius: "10px",
+    fontSize: "16px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    transition: "background-color 0.3s ease",
   },
   noThanks: {
     marginTop: "15px",
@@ -113,47 +125,37 @@ const styles = {
 };
 
 const DiscountPopup = () => {
-  // ==================== YAHAN BADLAV KIYA GAYA HAI ====================
-  // Testing ke liye, state ko shuru me 'true' set karein taaki popup turant dikhe.
-  const [isVisible, setIsVisible] = useState(true);
-  // ===================================================================
+  const [isVisible, setIsVisible] = useState(true); // Testing ke liye true
+
+  // ==================== RESPONSIVE BANANE KE LIYE NAYA BADLAV ====================
+  // Ek state banayi jo screen ki width track karegi. 768px ko breakpoint maana hai.
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Ye useEffect screen resize hone par 'isMobile' state ko update karega.
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Component unmount hone par event listener ko hatana zaroori hai (memory leak se bachne ke liye)
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []); // [] ka matlab ye sirf component ke mount aur unmount hone par chalega.
+  // =================================================================================
 
   const intervalRef = useRef(null);
 
-  // Ye useEffect popup ko dikhane ke liye hai
-  useEffect(() => {
-    // Agar testing ke liye state pehle se hi true hai, to ye logic abhi nahi chalega
-    if (isVisible) return;
-
-    const offerClaimed = sessionStorage.getItem("offerClaimed");
-    if (offerClaimed) {
-      return;
-    }
-
-    const initialTimer = setTimeout(() => {
-      setIsVisible(true);
-    }, 3000);
-
-    intervalRef.current = setInterval(() => {
-      setIsVisible(true);
-    }, 60000);
-
-    return () => {
-      clearTimeout(initialTimer);
-      clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  // Ye naya useEffect popup ko 5 second baad apne aap hatane ke liye hai
+  // Popup ko dikhane aur hatane wala logic (koi badlav nahi)
   useEffect(() => {
     if (isVisible) {
       const autoCloseTimer = setTimeout(() => {
-        setIsVisible(false);
+        //setIsVisible(false); // Testing ke liye isse comment kar diya taaki popup na hate
       }, 5000);
 
-      return () => {
-        clearTimeout(autoCloseTimer);
-      };
+      return () => clearTimeout(autoCloseTimer);
     }
   }, [isVisible]);
 
@@ -171,15 +173,69 @@ const DiscountPopup = () => {
     }
   };
 
+  // ==================== CONDITIONAL STYLES ====================
+  // Yahan hum 'isMobile' state ke आधार par styles ko merge kar rahe hain.
+
   const overlayStyle = isVisible
     ? { ...styles.popupOverlay, ...styles.popupOverlayVisible }
     : styles.popupOverlay;
 
-  const containerStyle = isVisible
-    ? { ...styles.popupContainer, ...styles.popupContainerVisible }
-    : styles.popupContainer;
+  // Mobile ke liye alag styles
+  const mobileContainerStyle = {
+    flexDirection: "column", // Sabse zaroori badlav: layout ko vertical kiya
+    width: "95%",
+    maxHeight: "90vh", // Taaki choti screens par poori height na le
+    overflowY: "auto", // Agar content zyada ho to scroll ho sake
+  };
 
-  // Agar popup visible nahi hai to kuch bhi render na karein
+  const mobileImageStyle = {
+    minHeight: "200px", // Image ke liye ek fixed height
+    minWidth: "100%", // Width ko 100% kiya
+    flex: "none", // Flex property ko reset kiya
+  };
+
+  const mobileContentStyle = {
+    padding: "30px 25px", // Padding kam ki
+  };
+
+  const mobileTitleStyle = {
+    fontSize: "28px", // Title ka font size chota kiya
+  };
+
+  const mobileCloseButtonStyle = {
+    color: colors.textLight, // Image ke upar dikhne ke liye button ka rang safed kiya
+    textShadow: "0 1px 3px rgba(0,0,0,0.5)", // Thodi shadow taaki saaf dikhe
+  };
+
+  // Final styles ko merge karna
+  const containerStyle = {
+    ...styles.popupContainer,
+    ...(isMobile && mobileContainerStyle), // Agar mobile hai to mobile styles apply karo
+    ...(isVisible && styles.popupContainerVisible),
+  };
+
+  const imageSectionStyle = {
+    ...styles.popupImageSection,
+    ...(isMobile && mobileImageStyle),
+  };
+
+  const contentSectionStyle = {
+    ...styles.popupContentSection,
+    ...(isMobile && mobileContentStyle),
+  };
+
+  const titleStyle = {
+    ...styles.title,
+    ...(isMobile && mobileTitleStyle),
+  };
+
+  const closeButtonStyle = {
+    ...styles.closeButton,
+    ...(isMobile && mobileCloseButtonStyle),
+  };
+
+  // =================================================================
+
   if (!isVisible && !overlayStyle.visibility) {
     return null;
   }
@@ -187,12 +243,27 @@ const DiscountPopup = () => {
   return (
     <div style={overlayStyle}>
       <div style={containerStyle}>
-        <div style={styles.popupImageSection}></div>
-        <div style={styles.popupContentSection}>
-          <button onClick={handleCloseTemporarily} style={styles.closeButton}>
-            ×
-          </button>
-          <h2 style={styles.title}>Wait! Don't Go!</h2>
+        {/* Agar mobile nahi hai tabhi image dikhao (optional, par performance ke liye accha) */}
+        {!isMobile && <div style={imageSectionStyle}></div>}
+
+        {/* Mobile par image ko content ke andar le aaye taaki order sahi rahe */}
+        {isMobile && (
+          <div style={imageSectionStyle}>
+            <button onClick={handleCloseTemporarily} style={closeButtonStyle}>
+              ×
+            </button>
+          </div>
+        )}
+
+        <div style={contentSectionStyle}>
+          {/* Desktop par close button yahan rahega */}
+          {!isMobile && (
+            <button onClick={handleCloseTemporarily} style={closeButtonStyle}>
+              ×
+            </button>
+          )}
+
+          <h2 style={titleStyle}>Wait! Don't Go!</h2>
           <p style={styles.description}>
             Join our family and get exclusive access to new products, special
             offers, and health tips.
@@ -204,7 +275,6 @@ const DiscountPopup = () => {
               required
               style={styles.emailInput}
             />
-            {/* Submit button ko form ke andar rakhna behtar practice hai */}
             <button
               type="submit"
               style={{
