@@ -216,7 +216,7 @@ const Footer = (props) => {
                 <p className="copyright">
                   Copyright © 2025 Chia Seeds by{" "}
                   <Link onClick={ClickHandler} to="/">
-                    chiaseeds
+                    naraaglobal
                   </Link>
                   . All Rights Reserved.
                 </p>
