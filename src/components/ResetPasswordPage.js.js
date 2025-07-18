@@ -1,3 +1,5 @@
+// src/components/ResetPasswordPage.js (Updated Code)
+
 import React, { useState, useEffect } from "react";
 import {
   Grid,
@@ -11,7 +13,8 @@ import {
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { resetPassword, reset } from "../features/auth/authSlice";
+// Path check karein, shayad ye ../features/auth/authSlice ho
+import { resetPassword, reset } from "../features/auth/authSlice"; 
 
 // --- Styles (reusing from LoginPage) ---
 const colors = {
@@ -74,13 +77,11 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// --- Main Component ---
 const ResetPasswordPage = () => {
   const classes = useStyles();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Get the reset token from the URL
   const { resetToken } = useParams();
 
   const [password, setPassword] = useState("");
@@ -97,9 +98,9 @@ const ResetPasswordPage = () => {
     }
 
     if (isResetSuccess) {
-      toast.success(message);
+      toast.success(message || "Password reset successfully! Please log in.");
       dispatch(reset());
-      navigate("/login"); // Redirect to login page on success
+      navigate("/login");
     }
   }, [isError, isResetSuccess, message, navigate, dispatch]);
 
@@ -119,10 +120,12 @@ const ResetPasswordPage = () => {
       return;
     }
 
+    // --- YAHAN BADLAV KIYA GAYA HAI ---
     const userData = {
-      resetToken,
+      token: resetToken, // Key ka naam 'token' kar diya gaya hai
       password,
     };
+    // --- END OF CHANGE ---
 
     dispatch(resetPassword(userData));
   };
