@@ -1,3 +1,6 @@
+// src/features/auth/OtpVerificationPage.js
+// --- FULL UPDATED CODE ---
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   Grid,
@@ -11,7 +14,7 @@ import {
 import { toast } from "react-toastify";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { verifyOtp, reset } from "../../features/auth/authSlice";
+import { verifyOtp, reset } from "./authSlice"; // Path ko check karein, shayad ../../features/auth/authSlice ho
 
 // --- Theme Colors and Styles Definition ---
 const colors = {
@@ -67,7 +70,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: colors.primary,
     color: "#ffffff",
     fontWeight: "bold",
-    borderRadius: "8px", // Fixed typo from borderpink
+    borderRadius: "8px",
     padding: theme.spacing(1.5, 0),
     marginTop: theme.spacing(2),
     "&:hover": { backgroundColor: colors.primaryHover },
@@ -93,7 +96,7 @@ const OtpVerificationPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  const isFirstVerification = useRef(true); // Track first-time verification
+  const isFirstVerification = useRef(true);
 
   const { isLoading, isError, isOtpVerifySuccess, message } = useSelector(
     (state) => state.auth
@@ -102,7 +105,6 @@ const OtpVerificationPage = () => {
   const email = location.state?.email;
   const [otp, setOtp] = useState("");
 
-  // Handle missing email
   useEffect(() => {
     if (!email) {
       toast.error("No email found. Please register first.");
@@ -117,12 +119,14 @@ const OtpVerificationPage = () => {
       dispatch(reset());
     }
 
+    // Ab ye 'isAuthenticated' par nirbhar nahi hai
     if (isOtpVerifySuccess) {
       if (isFirstVerification.current) {
-        toast.success("OTP verified");
-        isFirstVerification.current = false; // Prevent repeated notifications
+        // --- BEHTAR TOAST MESSAGE ---
+        toast.success("Account verified successfully! Please log in to continue.");
+        isFirstVerification.current = false;
       }
-      navigate("/login"); // Redirect to login page (or change to /dashboard if needed)
+      navigate("/login"); // Ab ye flicker nahi karega
       dispatch(reset());
     }
   }, [isError, isOtpVerifySuccess, message, navigate, dispatch]);
@@ -130,30 +134,20 @@ const OtpVerificationPage = () => {
   const submitForm = (e) => {
     e.preventDefault();
 
-    // Validation
-    if (!otp || otp.trim() === "") {
-      toast.error("Please enter the OTP.");
-      return;
-    }
-
-    if (otp.length !== 6) {
+    if (!otp || otp.trim().length !== 6) {
       toast.error("Please enter a valid 6-digit OTP.");
       return;
     }
 
-    // Dispatch OTP verification
     const otpData = {
       email: email,
       otp: otp.trim(),
     };
-
-    console.log("Submitting OTP data:", otpData); // Debug log
     dispatch(verifyOtp(otpData));
   };
 
   const handleOtpChange = (e) => {
     const value = e.target.value;
-    // Only allow numeric input and limit to 6 digits
     if (/^\d*$/.test(value) && value.length <= 6) {
       setOtp(value);
     }
@@ -170,7 +164,7 @@ const OtpVerificationPage = () => {
             <Typography className={classes.subtitle}>
               No email found. Please register first.
             </Typography>
-            <Link to="/register">
+            <Link to="/register" style={{ textDecoration: 'none' }}>
               <Button fullWidth className={classes.submitButton}>
                 Go to Register
               </Button>
