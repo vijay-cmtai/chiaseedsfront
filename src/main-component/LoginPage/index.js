@@ -1,5 +1,3 @@
-// src/pages/LoginPage.js
-
 import React, { useState, useEffect, useRef } from "react";
 import {
   Grid,
@@ -13,8 +11,10 @@ import {
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { login, reset } from "../../features/auth/authSlice";
+// FIX: Path corrected from ../ to ../../
+import { login, reset, forgotPassword } from "../../features/auth/authSlice";
 
+// --- Styles ---
 const colors = {
   primary: "#878fba",
   primaryHover: "#6c749d",
@@ -84,117 +84,216 @@ const useStyles = makeStyles((theme) => ({
       textDecoration: "none",
     },
   },
+  linkText: {
+    color: colors.primary,
+    fontWeight: "bold",
+    textDecoration: "none",
+    cursor: "pointer",
+  },
 }));
 
+// --- Main Component ---
 const LoginPage = () => {
   const classes = useStyles();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { user, isLoading, isError, isLoginSuccess, isAuthenticated, message } = useSelector(
-    (state) => state.auth
-  );
+  const [mode, setMode] = useState("login"); // 'login' or 'forgotPassword'
 
-  const [value, setValue] = useState({ email: "", password: "" });
-  const hasNavigated = useRef(false); // To avoid redirect loop
+  const {
+    user,
+    isLoading,
+    isError,
+    isLoginSuccess,
+    isAuthenticated,
+    message,
+    isForgotPasswordLoading,
+    isForgotPasswordSuccess,
+  } = useSelector((state) => state.auth);
 
-  // Handle errors
+  const [loginValue, setLoginValue] = useState({ email: "", password: "" });
+  const [forgotEmail, setForgotEmail] = useState("");
+  const hasNavigated = useRef(false);
+
   useEffect(() => {
     if (isError) {
       toast.error(message);
       dispatch(reset());
     }
-  }, [isError, message, dispatch]);
 
-  // Redirect after login
-  useEffect(() => {
-    if ((isLoginSuccess || isAuthenticated) && !hasNavigated.current) {
+    if ((isLoginSuccess || isAuthenticated) && user && !hasNavigated.current) {
       hasNavigated.current = true;
-
-      // toast.success("Logged in successfully!");
-
-      const loggedInUser = user?.user || user; // handle different structures
-
+      toast.success("Login Successful!");
+      const loggedInUser = user?.user || user;
       if (loggedInUser?.role === "admin") {
         navigate("/admin/dashboard");
       } else {
         navigate("/user/dashboard");
       }
+    }
 
+    if (isForgotPasswordSuccess) {
+      toast.success(message);
+      setMode("login");
       dispatch(reset());
     }
-  }, [user, isLoginSuccess, isAuthenticated, navigate, dispatch]);
 
-  const changeHandler = (e) => {
-    setValue({ ...value, [e.target.name]: e.target.value });
+    return () => {
+      if (isLoginSuccess || isError || isForgotPasswordSuccess) {
+        dispatch(reset());
+      }
+    };
+  }, [
+    isError,
+    isLoginSuccess,
+    isAuthenticated,
+    isForgotPasswordSuccess,
+    message,
+    dispatch,
+    navigate,
+    user,
+  ]);
+
+  const handleLoginChange = (e) => {
+    setLoginValue({ ...loginValue, [e.target.name]: e.target.value });
   };
 
-  const submitForm = (e) => {
+  const handleLoginSubmit = (e) => {
     e.preventDefault();
-
-    if (!value.email || !value.password) {
+    if (!loginValue.email || !loginValue.password) {
       toast.error("Please fill in both email and password.");
       return;
     }
-
-    console.log("Logging in with:", value); // Debug
-    dispatch(login(value));
+    hasNavigated.current = false;
+    dispatch(login(loginValue));
   };
+
+  const handleForgotSubmit = (e) => {
+    e.preventDefault();
+    if (!forgotEmail) {
+      toast.error("Please enter your email address.");
+      return;
+    }
+    dispatch(forgotPassword({ email: forgotEmail }));
+  };
+
+  const renderLoginForm = () => (
+    <>
+      <Typography variant="h4" className={classes.title}>
+        Sign In
+      </Typography>
+      <Typography className={classes.subtitle}>
+        Sign in to your account
+      </Typography>
+      <form onSubmit={handleLoginSubmit}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="E-mail"
+              name="email"
+              value={loginValue.email}
+              variant="outlined"
+              onChange={handleLoginChange}
+              className={classes.inputField}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Password"
+              name="password"
+              type="password"
+              value={loginValue.password}
+              variant="outlined"
+              onChange={handleLoginChange}
+              className={classes.inputField}
+              required
+            />
+          </Grid>
+          <Grid
+            item
+            xs={12}
+            style={{
+              textAlign: "right",
+              marginTop: "-16px",
+              marginBottom: "8px",
+            }}
+          >
+            <Typography
+              variant="body2"
+              className={classes.linkText}
+              onClick={() => setMode("forgotPassword")}
+            >
+              Forgot Password?
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Button
+              fullWidth
+              className={classes.submitButton}
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? "Logging in..." : "Login"}
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
+      <Typography className={classes.noteHelp}>
+        Don't have an account? <Link to="/register">Create an account</Link>
+      </Typography>
+    </>
+  );
+
+  const renderForgotPasswordForm = () => (
+    <>
+      <Typography variant="h4" className={classes.title}>
+        Reset Password
+      </Typography>
+      <Typography className={classes.subtitle}>
+        Enter your email to receive a reset link
+      </Typography>
+      <form onSubmit={handleForgotSubmit}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="E-mail"
+              name="email"
+              value={forgotEmail}
+              variant="outlined"
+              onChange={(e) => setForgotEmail(e.target.value)}
+              className={classes.inputField}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Button
+              fullWidth
+              className={classes.submitButton}
+              type="submit"
+              disabled={isForgotPasswordLoading}
+            >
+              {isForgotPasswordLoading ? "Sending..." : "Send Reset Link"}
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
+      <Typography className={classes.noteHelp}>
+        <span className={classes.linkText} onClick={() => setMode("login")}>
+          Back to Login
+        </span>
+      </Typography>
+    </>
+  );
 
   return (
     <div className={classes.pageWrapper}>
       <Card className={classes.formCard}>
         <CardContent>
-          <Typography variant="h4" className={classes.title}>
-            Sign In
-          </Typography>
-          <Typography className={classes.subtitle}>
-            Sign in to your account
-          </Typography>
-
-          <form onSubmit={submitForm}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="E-mail"
-                  name="email"
-                  value={value.email}
-                  variant="outlined"
-                  onChange={changeHandler}
-                  className={classes.inputField}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Password"
-                  name="password"
-                  type="password"
-                  value={value.password}
-                  variant="outlined"
-                  onChange={changeHandler}
-                  className={classes.inputField}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Button
-                  fullWidth
-                  className={classes.submitButton}
-                  type="submit"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Logging in..." : "Login"}
-                </Button>
-              </Grid>
-            </Grid>
-          </form>
-
-          <Typography className={classes.noteHelp}>
-            Don't have an account? <Link to="/register">Create an account</Link>
-          </Typography>
+          {mode === "login" ? renderLoginForm() : renderForgotPasswordForm()}
         </CardContent>
       </Card>
     </div>
