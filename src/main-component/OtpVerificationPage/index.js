@@ -14,7 +14,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { verifyOtp, reset } from "../../features/auth/authSlice";
 
-// --- Theme Colors and Styles Definition (Copied from SignUpPage) ---
+// --- Theme Colors and Styles Definition ---
 const colors = {
   primary: "#878fba",
   primaryHover: "#6c749d",
@@ -103,32 +103,81 @@ const OtpVerificationPage = () => {
     if (!email) {
       toast.error("No email found. Please register first.");
       navigate("/register");
-    }
-
-    if (isError) {
-      toast.error(message);
-      dispatch(reset());
       return;
+    }
+  }, [email, navigate]);
+
+  useEffect(() => {
+    if (isError && message) {
+      toast.error(message);
     }
 
     if (isOtpVerifySuccess) {
       toast.success(message || "Verification successful! You can now log in.");
       navigate("/login");
-      dispatch(reset());
-      return;
     }
-  }, [email, isError, isOtpVerifySuccess, message, navigate, dispatch]);
+
+    // Clean up on unmount or when status changes
+    return () => {
+      if (isError || isOtpVerifySuccess) {
+        dispatch(reset());
+      }
+    };
+  }, [isError, isOtpVerifySuccess, message, navigate, dispatch]);
 
   const submitForm = (e) => {
     e.preventDefault();
-    if (!otp || otp.length !== 6) {
+    
+    // Validation
+    if (!otp || otp.trim() === "") {
+      toast.error("Please enter the OTP.");
+      return;
+    }
+    
+    if (otp.length !== 6) {
       toast.error("Please enter a valid 6-digit OTP.");
       return;
     }
 
-    const otpData = { email, otp };
+    // Dispatch OTP verification
+    const otpData = { 
+      email: email, 
+      otp: otp.trim() 
+    };
+    
+    console.log("Submitting OTP data:", otpData); // Debug log
     dispatch(verifyOtp(otpData));
   };
+
+  const handleOtpChange = (e) => {
+    const value = e.target.value;
+    // Only allow numeric input and limit to 6 digits
+    if (/^\d*$/.test(value) && value.length <= 6) {
+      setOtp(value);
+    }
+  };
+
+  if (!email) {
+    return (
+      <div className={classes.pageWrapper}>
+        <Card className={classes.formCard}>
+          <CardContent>
+            <Typography variant="h4" className={classes.title}>
+              Error
+            </Typography>
+            <Typography className={classes.subtitle}>
+              No email found. Please register first.
+            </Typography>
+            <Link to="/register">
+              <Button fullWidth className={classes.submitButton}>
+                Go to Register
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className={classes.pageWrapper}>
@@ -138,7 +187,7 @@ const OtpVerificationPage = () => {
             Verify Account
           </Typography>
           <Typography className={classes.subtitle}>
-            An OTP has been sent to <strong>{email || "your email"}</strong>.
+            An OTP has been sent to <strong>{email}</strong>.
             Please enter it below.
           </Typography>
           <form onSubmit={submitForm}>
@@ -150,8 +199,12 @@ const OtpVerificationPage = () => {
                   name="otp"
                   value={otp}
                   variant="outlined"
-                  onChange={(e) => setOtp(e.target.value)}
+                  onChange={handleOtpChange}
                   className={classes.inputField}
+                  inputProps={{ 
+                    maxLength: 6,
+                    style: { textAlign: 'center', fontSize: '1.2rem', letterSpacing: '0.5rem' }
+                  }}
                   required
                 />
               </Grid>
