@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Grid,
   TextField,
@@ -7,7 +7,6 @@ import {
   CardContent,
   Typography,
   makeStyles,
-  Box,
 } from "@material-ui/core";
 import { toast } from "react-toastify";
 import { useLocation, useNavigate, Link } from "react-router-dom";
@@ -68,7 +67,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: colors.primary,
     color: "#ffffff",
     fontWeight: "bold",
-    borderRadius: "8px",
+    borderRadius: "8px", // Fixed typo from borderpink
     padding: theme.spacing(1.5, 0),
     marginTop: theme.spacing(2),
     "&:hover": { backgroundColor: colors.primaryHover },
@@ -82,6 +81,9 @@ const useStyles = makeStyles((theme) => ({
       color: colors.primary,
       fontWeight: "bold",
       textDecoration: "none",
+      "&:hover": {
+        textDecoration: "underline",
+      },
     },
   },
 }));
@@ -91,6 +93,7 @@ const OtpVerificationPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
+  const isFirstVerification = useRef(true); // Track first-time verification
 
   const { isLoading, isError, isOtpVerifySuccess, message } = useSelector(
     (state) => state.auth
@@ -99,52 +102,51 @@ const OtpVerificationPage = () => {
   const email = location.state?.email;
   const [otp, setOtp] = useState("");
 
+  // Handle missing email
   useEffect(() => {
     if (!email) {
       toast.error("No email found. Please register first.");
       navigate("/register");
-      return;
     }
   }, [email, navigate]);
 
+  // Handle OTP verification status
   useEffect(() => {
     if (isError && message) {
       toast.error(message);
+      dispatch(reset());
     }
 
     if (isOtpVerifySuccess) {
-      toast.success(message || "Verification successful! You can now log in.");
-      navigate("/login");
-    }
-
-    // Clean up on unmount or when status changes
-    return () => {
-      if (isError || isOtpVerifySuccess) {
-        dispatch(reset());
+      if (isFirstVerification.current) {
+        toast.success("OTP verified");
+        isFirstVerification.current = false; // Prevent repeated notifications
       }
-    };
+      navigate("/login"); // Redirect to login page (or change to /dashboard if needed)
+      dispatch(reset());
+    }
   }, [isError, isOtpVerifySuccess, message, navigate, dispatch]);
 
   const submitForm = (e) => {
     e.preventDefault();
-    
+
     // Validation
     if (!otp || otp.trim() === "") {
       toast.error("Please enter the OTP.");
       return;
     }
-    
+
     if (otp.length !== 6) {
       toast.error("Please enter a valid 6-digit OTP.");
       return;
     }
 
     // Dispatch OTP verification
-    const otpData = { 
-      email: email, 
-      otp: otp.trim() 
+    const otpData = {
+      email: email,
+      otp: otp.trim(),
     };
-    
+
     console.log("Submitting OTP data:", otpData); // Debug log
     dispatch(verifyOtp(otpData));
   };
@@ -187,8 +189,8 @@ const OtpVerificationPage = () => {
             Verify Account
           </Typography>
           <Typography className={classes.subtitle}>
-            An OTP has been sent to <strong>{email}</strong>.
-            Please enter it below.
+            An OTP has been sent to <strong>{email}</strong>. Please enter it
+            below.
           </Typography>
           <form onSubmit={submitForm}>
             <Grid container spacing={2}>
@@ -201,9 +203,13 @@ const OtpVerificationPage = () => {
                   variant="outlined"
                   onChange={handleOtpChange}
                   className={classes.inputField}
-                  inputProps={{ 
+                  inputProps={{
                     maxLength: 6,
-                    style: { textAlign: 'center', fontSize: '1.2rem', letterSpacing: '0.5rem' }
+                    style: {
+                      textAlign: "center",
+                      fontSize: "1.2rem",
+                      letterSpacing: "0.5rem",
+                    },
                   }}
                   required
                 />
