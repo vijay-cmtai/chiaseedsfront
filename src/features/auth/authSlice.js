@@ -1,3 +1,6 @@
+// src/features/auth/authSlice.js
+// --- FULL UPDATED CODE ---
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import authService from "./authAPI";
 
@@ -34,18 +37,13 @@ export const register = createAsyncThunk(
   }
 );
 
-// Verify OTP
+// Verify OTP - Isme se localStorage ka logic hata diya gaya hai
 export const verifyOtp = createAsyncThunk(
   "auth/verifyOtp",
   async (otpData, thunkAPI) => {
     try {
+      // Ab ye sirf API call karega aur response return karega
       const response = await authService.verifyOtp(otpData);
-      
-      // Store user data in localStorage after successful verification
-      if (response.data && response.data.user) {
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-      }
-      
       return response;
     } catch (error) {
       const message =
@@ -61,7 +59,7 @@ export const login = createAsyncThunk(
   async (userData, thunkAPI) => {
     try {
       return await authService.login(userData);
-    } catch (error) {
+    } catch (error)      {
       const message =
         (error.response?.data?.message) || error.message || error.toString();
       return thunkAPI.rejectWithValue(message);
@@ -123,8 +121,6 @@ export const authSlice = createSlice({
     builder
       .addCase(register.pending, (state) => {
         state.isLoading = true;
-        state.isError = false;
-        state.message = "";
       })
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -137,6 +133,8 @@ export const authSlice = createSlice({
         state.message = action.payload;
         state.user = null;
       })
+      
+      // --- YAHAN ZAROORI BADLAV KIYA GAYA HAI ---
       .addCase(verifyOtp.pending, (state) => {
         state.isLoading = true;
         state.isError = false;
@@ -144,27 +142,27 @@ export const authSlice = createSlice({
       })
       .addCase(verifyOtp.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.isOtpVerifySuccess = true;
-        state.isAuthenticated = true;
-        // Handle both possible response structures
-        state.user = action.payload.data?.user || action.payload.user;
-        state.message = action.payload.message || "OTP verified successfully.";
+        state.isOtpVerifySuccess = true; // Sirf success flag set karein
+        state.isAuthenticated = false; // Isse false rakhein, user abhi logged in nahi hai
+        state.user = null; // User object ko set na karein
+        state.message = action.payload.message || "Account verified. Please log in.";
       })
       .addCase(verifyOtp.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
         state.user = null;
+        state.isAuthenticated = false; // Error par bhi false rakhein
       })
+      // --- END OF CHANGES ---
+
       .addCase(login.pending, (state) => {
         state.isLoading = true;
-        state.isError = false;
-        state.message = "";
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isLoginSuccess = true;
-        state.isAuthenticated = true;
+        state.isAuthenticated = true; // Sirf login par hi isAuthenticated true hoga
         state.user = action.payload;
       })
       .addCase(login.rejected, (state, action) => {
@@ -176,8 +174,6 @@ export const authSlice = createSlice({
       })
       .addCase(forgotPassword.pending, (state) => {
         state.isForgotPasswordLoading = true;
-        state.isError = false;
-        state.message = "";
       })
       .addCase(forgotPassword.fulfilled, (state, action) => {
         state.isForgotPasswordLoading = false;
@@ -191,8 +187,6 @@ export const authSlice = createSlice({
       })
       .addCase(resetPassword.pending, (state) => {
         state.isLoading = true;
-        state.isError = false;
-        state.message = "";
       })
       .addCase(resetPassword.fulfilled, (state, action) => {
         state.isLoading = false;
