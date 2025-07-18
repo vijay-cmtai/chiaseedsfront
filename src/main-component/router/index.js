@@ -41,14 +41,13 @@ import Privacypolicy from "../PrivacyPolicy";
 import TermsAndConditions from "../TermsAndCondition";
 import OrderConfirmationPage from "../../pages/OrderConfirmationPage";
 import ScrollToTop from "../../components/ScrollToTop";
-// import DiscountPopup from "../../components/DiscountPopup"; // Popup ko import karein
+
 import ResetPasswordPage from "../../components/ResetPasswordPage.js";
 
 const AllRoute = () => {
   return (
     <>
       <ScrollToTop />
-      // <DiscountPopup />
 
       <Routes>
         <Route path="/" element={<Homepage />} />
