@@ -10,7 +10,7 @@ const register = async (userData) => {
 
 const login = async (userData) => {
   try {
-    const response = await axios.post(APIkeen to be here_URL + "login", userData);
+    const response = await axios.post(API_URL + "login", userData); // Fixed typo
     const user = response.data.data?.user || response.data.user;
     if (user) {
       localStorage.setItem("user", JSON.stringify(user));
@@ -55,10 +55,7 @@ const resetPassword = async (resetData) => {
   if (!resetToken) {
     throw new Error("Reset token is missing. Cannot reset password.");
   }
-  const response = await axios.post(
-    API_URL + `reset-password/${resetToken}`,
-    { password }
-  );
+  const response = await axios.post(API_URL + `reset-password/${resetToken}`, { password });
   return response.data;
 };
 
