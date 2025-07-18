@@ -419,7 +419,7 @@ class Header extends Component {
                             }`}
                           >
                             <div className="user-info">
-                              <h6>{displayUser?.name || "Guest User"}</h6>
+                              <h6>{displayUser?.fullName || "Guest User"}</h6>
                               <span>{displayUser?.email || "No email"}</span>
                             </div>
                             <ul>
