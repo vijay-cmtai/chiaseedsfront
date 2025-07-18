@@ -117,7 +117,7 @@ const Footer = (props) => {
                       </Link>
                     </li>
                     <li>
-                      <Link to="/">
+                      <Link to="https://www.instagram.com/naraaglobal?utm_source=qr&igsh=NGVxOW5idmtzN2x1">
                         <i className="ti-instagram"></i>
                       </Link>
                     </li>
@@ -145,7 +145,7 @@ const Footer = (props) => {
                       </li>
                       <li>
                         <i className="fi flaticon-envelope"></i>{" "}
-                       hello@naraaglobal.com
+                        sahilpardakee180@gmail.com
                       </li>
                     </ul>
                   </div>
@@ -216,7 +216,7 @@ const Footer = (props) => {
                 <p className="copyright">
                   Copyright © 2025 Chia Seeds by{" "}
                   <Link onClick={ClickHandler} to="/">
-                    naraaglobal
+                    chiaseeds
                   </Link>
                   . All Rights Reserved.
                 </p>
