@@ -18,11 +18,6 @@ const Footer = (props) => {
   };
 
   const footerStyles = `
-    /* =======================================================
-       FOOTER THEME - FROSTED BLUEBERRY (KEPT AS IS)
-       ======================================================= */
-
-    /* Main Styles (All these are kept as they were) */
     .tp-site-footer {
       background-color: ${colors.backgroundDark};
       color: ${colors.textPrimary};
@@ -44,9 +39,7 @@ const Footer = (props) => {
     .newsletter-widget form input::placeholder { color: ${colors.textSecondary}; }
     .newsletter-widget form button { background-color: ${colors.accent}; color: ${colors.backgroundDark}; }
 
-    /* =======================================================
-       ✅ NEW LAYOUT STYLES FOR THE BOTTOM BAR
-       ======================================================= */
+   
        
     .tp-lower-footer {
       background-color: ${colors.backgroundLighter};
@@ -100,15 +93,17 @@ const Footer = (props) => {
                       <img src={Logo} alt="ft-logo" /> Chia Seeds
                     </Link>
                   </div>
-                  {/* <p>
-                    Management consulting includes a broad range of activities,
-                    and the many firms and their members often define these
-                    practices.
-                  </p> */}
+
                   <ul>
                     <li>
                       <Link to="https://www.instagram.com/naraaglobal?utm_source=qr&igsh=NGVxOW5idmtzN2x1">
                         <i className="ti-instagram"></i>
+                      </Link>
+                    </li>
+                    {/* ✅ FIX: Corrected class from 'ti-linkdin' to 'ti-linkedin' and updated the link */}
+                    <li>
+                      <Link to="https://www.linkedin.com/company/naraaglobal/?viewAsMember=true">
+                        <i className="ti-linkedin"></i>
                       </Link>
                     </li>
                   </ul>
@@ -128,8 +123,6 @@ const Footer = (props) => {
                       <li>
                         <i className="fi flaticon-call"></i>+91 7620945925
                       </li>
-                      {/* ✅ FIX: Added the second phone number from the Razorpay email for compliance. */}
-
                       <li>
                         <i className="fi flaticon-envelope"></i>{" "}
                         hello@naraaglobal.com
@@ -203,7 +196,7 @@ const Footer = (props) => {
                 <p className="copyright">
                   Copyright © 2025 Chia Seeds by{" "}
                   <Link onClick={ClickHandler} to="/">
-                    naraaglobal
+                    chiaseeds
                   </Link>
                   . All Rights Reserved.
                 </p>
