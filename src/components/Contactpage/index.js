@@ -12,7 +12,7 @@ const colors = {
   gradientEnd: "#e0c3fc",
 };
 
-// --- Styles (Unchanged) ---
+// --- Styles ---
 const styles = {
   contactSection: {
     padding: "100px 0",
@@ -78,7 +78,6 @@ const styles = {
     lineHeight: "1.6",
     margin: 0,
   },
-  // Added for email labels
   emailLabel: {
     fontSize: "14px",
     color: colors.textDark,
@@ -110,6 +109,22 @@ const styles = {
 };
 
 const Contactpage = () => {
+  // Add Font Awesome CDN to head if not already present
+  React.useEffect(() => {
+    const existingLink = document.querySelector('link[href*="font-awesome"]');
+    if (!existingLink) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href =
+        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css";
+      link.integrity =
+        "sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==";
+      link.crossOrigin = "anonymous";
+      link.referrerPolicy = "no-referrer";
+      document.head.appendChild(link);
+    }
+  }, []);
+
   return (
     <section style={styles.contactSection}>
       <div className="container">
@@ -123,7 +138,7 @@ const Contactpage = () => {
                 {/* Address */}
                 <li style={styles.contactItem}>
                   <div style={styles.iconWrapper}>
-                    <i className="fa fa-map-marker-alt"></i>
+                    <i className="fas fa-map-marker-alt"></i>
                   </div>
                   <div style={styles.textWrapper}>
                     <h5 style={styles.itemTitle}>Address</h5>
@@ -141,12 +156,11 @@ const Contactpage = () => {
                 {/* Phone */}
                 <li style={styles.contactItem}>
                   <div style={styles.iconWrapper}>
-                    <i className="fa fa-phone-alt"></i>
+                    <i className="fas fa-phone-alt"></i>
                   </div>
                   <div style={styles.textWrapper}>
                     <h5 style={styles.itemTitle}>Phone</h5>
-                    {/* The phone number you provided seems incomplete, I've left it as is. */}
-                    <a href="tel:+91 7620945925" style={styles.itemLink}>
+                    <a href="tel:+917620945925" style={styles.itemLink}>
                       +91 7620945925
                     </a>
                   </div>
@@ -154,7 +168,7 @@ const Contactpage = () => {
                 {/* Email */}
                 <li style={styles.contactItem}>
                   <div style={styles.iconWrapper}>
-                    <i className="fa fa-envelope"></i>
+                    <i className="fas fa-envelope"></i>
                   </div>
                   <div style={styles.textWrapper}>
                     <h5 style={styles.itemTitle}>Email</h5>
@@ -196,7 +210,7 @@ const Contactpage = () => {
                 {/* Working Hours */}
                 <li style={styles.contactItem}>
                   <div style={styles.iconWrapper}>
-                    <i className="fa fa-clock"></i>
+                    <i className="fas fa-clock"></i>
                   </div>
                   <div style={styles.textWrapper}>
                     <h5 style={styles.itemTitle}>Working Hours</h5>
