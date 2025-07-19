@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react"; // <<< CHANGE: useState yahan se hata diya gaya hai
 import { Link } from "react-router-dom";
 import BlogSidebar from "../BlogSidebar";
 import VideoModal from "../../components/ModalVideo";
@@ -91,39 +91,11 @@ const styles = {
       color: colors.textDark,
     },
   },
-  paginationWrapper: {
-    textAlign: "center",
-    marginTop: "20px",
-  },
-  paginationList: {
-    display: "inline-flex",
-    gap: "10px",
-    listStyle: "none",
-    padding: 0,
-    margin: 0,
-  },
-  paginationLink: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "45px",
-    height: "45px",
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-    color: colors.textDark,
-    borderRadius: "10px",
-    textDecoration: "none",
-    transition: "all 0.3s ease",
-  },
-  paginationLinkActive: {
-    backgroundColor: colors.primary,
-    color: colors.textLight,
-  },
+  // <<< CHANGE: Pagination se jude styles yahan se hata diye gaye hain.
 };
 
 const BlogList = (props) => {
-  // --- ClickHandler HATA DIYA GAYA HAI ---
-
-  const [activePage, setActivePage] = useState(1);
+  // <<< CHANGE: activePage ka state yahan se hata diya gaya hai.
 
   return (
     <section style={styles.blogSection}>
@@ -148,7 +120,6 @@ const BlogList = (props) => {
                   <div style={styles.metaInfo}>
                     <span>
                       <i className="fa fa-user"></i> By{" "}
-                      {/* --- onClick HATA DIYA GAYA HAI --- */}
                       <Link
                         to={`/blog-single/${blog.id}`}
                         style={styles.metaLink}
@@ -165,7 +136,6 @@ const BlogList = (props) => {
                   </div>
                   <div>
                     <h3 style={styles.postTitle}>
-                      {/* --- onClick HATA DIYA GAYA HAI --- */}
                       <Link
                         to={`/blog-single/${blog.id}`}
                         style={styles.titleLink}
@@ -179,7 +149,6 @@ const BlogList = (props) => {
                       and strategic planning to communications. If you love
                       rising to a challenge.
                     </p>
-                    {/* --- onClick HATA DIYA GAYA HAI --- */}
                     <Link
                       to={`/blog-single/${blog.id}`}
                       style={styles.readMoreLink}
@@ -190,47 +159,7 @@ const BlogList = (props) => {
                 </div>
               ))}
 
-              {/* Pagination remains the same */}
-              <div style={styles.paginationWrapper}>
-                <ul style={styles.paginationList}>
-                  <li>
-                    <Link
-                      to="/blog"
-                      aria-label="Previous"
-                      style={styles.paginationLink}
-                    >
-                      <i className="fa fa-angle-left"></i>
-                    </Link>
-                  </li>
-                  {[1, 2, 3].map((page) => (
-                    <li key={page}>
-                      <Link
-                        to="/blog"
-                        style={
-                          activePage === page
-                            ? {
-                                ...styles.paginationLink,
-                                ...styles.paginationLinkActive,
-                              }
-                            : styles.paginationLink
-                        }
-                        onClick={() => setActivePage(page)}
-                      >
-                        {page}
-                      </Link>
-                    </li>
-                  ))}
-                  <li>
-                    <Link
-                      to="/blog"
-                      aria-label="Next"
-                      style={styles.paginationLink}
-                    >
-                      <i className="fa fa-angle-right"></i>
-                    </Link>
-                  </li>
-                </ul>
-              </div>
+              {/* <<< CHANGE: Pagination ka poora section yahan se hata diya gaya hai. */}
             </div>
           </div>
           <BlogSidebar blLeft={props.blLeft} />
