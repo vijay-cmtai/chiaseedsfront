@@ -24,13 +24,11 @@ const styles = {
     textAlign: "center",
     marginBottom: "50px",
   },
-  // === 1. STYLE KO IMAGE KE LIYE UPDATE KIYA GAYA HAI ===
   shipLogo: {
-    width: "70px", // Image ki chaudai
-    height: "auto", // Lambai apne aap adjust ho jayegi
-    marginBottom: "15px", // Logo aur title ke beech mein jagah
+    width: "70px",
+    height: "auto",
+    marginBottom: "15px",
   },
-  // ====================================================
   sectionTitle: {
     fontSize: "38px",
     fontWeight: 900,
@@ -83,21 +81,18 @@ const styles = {
     fontSize: "14px",
     color: colors.primaryButton,
     fontWeight: "bold",
-    margin: "0 0 20px 0",
+    margin: "0 0 20px 0", // Iska margin neeche space dega
     textTransform: "uppercase",
   },
-  socialLinks: {
-    listStyle: "none",
-    padding: 0,
-    margin: 0,
-    display: "flex",
-    justifyContent: "center",
-    gap: "15px",
-  },
-  socialIconLink: {
-    color: colors.textDark,
+  // <<< CHANGE 1: Purane social media styles hata diye gaye hain aur naya style joda gaya hai
+  companyName: {
     fontSize: "16px",
-    transition: "color 0.3s ease",
+    fontWeight: "700",
+    color: colors.textDark,
+    opacity: 0.8,
+    marginTop: "15px",
+    letterSpacing: "1px",
+    textTransform: "uppercase",
   },
 };
 
@@ -114,11 +109,6 @@ const TeamSection = () => {
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
-    responsive: [
-      { breakpoint: 1200, settings: { slidesToShow: 1 } },
-      { breakpoint: 992, settings: { slidesToShow: 1 } },
-      { breakpoint: 768, settings: { slidesToShow: 1 } },
-    ],
   };
 
   const Teams = [
@@ -134,9 +124,7 @@ const TeamSection = () => {
     <section style={styles.teamSection}>
       <div className="container">
         <div style={styles.sectionHeader}>
-          {/* === 2. ICON KI JAGAH IMAGE TAG USE KIYA GAYA HAI === */}
           <img src={ship1} alt="Ship and Anchor Logo" style={styles.shipLogo} />
-          {/* ==================================================== */}
           <h2 style={styles.sectionTitle}>
             Captain of the <span style={styles.titleSpan}>Ship</span>
           </h2>
@@ -175,45 +163,13 @@ const TeamSection = () => {
                   <div style={styles.details}>
                     <h4 style={styles.name}>{team.title}</h4>
                     <p style={styles.designation}>{team.des}</p>
-                    <p style={{ color: colors.textDark }}>{team.qua}</p>
-                    <ul style={styles.socialLinks}>
-                      <li>
-                        <Link
-                          onClick={ClickHandler}
-                          to="/about"
-                          style={styles.socialIconLink}
-                        >
-                          <i className="fab fa-facebook-f"></i>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          onClick={ClickHandler}
-                          to="/about"
-                          style={styles.socialIconLink}
-                        >
-                          <i className="fab fa-twitter"></i>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          onClick={ClickHandler}
-                          to="/about"
-                          style={styles.socialIconLink}
-                        >
-                          <i className="fab fa-linkedin-in"></i>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          onClick={ClickHandler}
-                          to="/about"
-                          style={styles.socialIconLink}
-                        >
-                          <i className="fab fa-instagram"></i>
-                        </Link>
-                      </li>
-                    </ul>
+                    <p style={{ color: colors.textDark, marginBottom: "20px" }}>
+                      {team.qua}
+                    </p>
+
+                    {/* <<< CHANGE 2: Yahan social media icons ki jagah company ka naam add kiya gaya hai */}
+                    <p style={styles.companyName}>Naraa Global Enterprises</p>
+                    {/* ========================================================================= */}
                   </div>
                 </div>
               </div>
